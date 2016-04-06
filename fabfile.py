@@ -200,7 +200,8 @@ def ssh3():
 @roles('server')
 def correct_bashrc():
     normalUser()
-    put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),os.path.join('/home',env.user,'fabric-tmp.sh'),744)
+    put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),os.path.join('/home',env.user,'fabric-tmp.sh'))
+    run ('chmod +x '+os.path.join('/home',env.user,'fabric-tmp.sh'))
     run(os.path.join('/home',env.user,'fabric-tmp.sh'))
     run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
 
