@@ -114,11 +114,12 @@ def downloadJDK():
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
 @roles('server')
 def distributeJDK():
+    print 'will create a temp file /home/username/fabric-jdk.tar.gz'
     env.user=cf.get(activeSession,'newuser')
     env.password=cf.get(activeSession,'passwd')
-    put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), cf.get(activeSession,'jdk_target_file'))
-    run('tar -xzf '+ cf.get(activeSession,'jdk_target_file'))
-    run('echo "export JAVA_HOME=/home/'+env.user+ cf.get(activeSession,'jdk_folder')+'">>~/.bashrc')
+    put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+    run('tar -xzf '+ os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+    run('echo "export JAVA_HOME='+os.path.join('/home/',env.user,'fabric-jdk.tar.gz', cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
     run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
 
 @roles('server')
