@@ -28,6 +28,7 @@ env.roledefs = {
 @roles('client')
 def createClientUser():
     createUser(cf.get('client','newuser'),cf.get('client','passwd'))
+
 @roles('server')
 def createServerUser():
     createUser(cf.get('server','newuser'),cf.get('server','passwd'))
@@ -52,9 +53,9 @@ def createUser(name, passwd):
             '这些信息是否正确？ [Y/n] ': 'y',
             'Is the information correct? [Y/n] ': 'y',
             }):
-            sudo('adduser '+name ,pty=True, combine_stderr=True)
+            sudo('adduser '+name ,pty=False, combine_stderr=False)
 
-@roles('server')
+@roles('client')
 def test():
     with settings(warn_only=True):
         cd('/')
@@ -79,3 +80,6 @@ def changeHostname():
     sudo('echo '+ env.host+' >/etc/hostname' )
     sudo('hostname '+ env.host)
   #  print env.host
+@roles('client')
+def removeClientUser():
+    sudo('deluser '+ cf.get('client','newuser'), pty=False, combine_stderr=False)
