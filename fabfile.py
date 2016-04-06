@@ -11,7 +11,10 @@ cf.read('passwd.ini')
 activeSession=cf.get('default','activeSession')
 #env.hosts=['localhost']
 env.disable_known_hosts=True
+
+# if you use Amazon Ec2. you need comment env.password=.... in rootUser()  and use the below code
 #env.key_filename=['~/Desktop/hxd.pem']
+
 def rootUser():
     env.user=cf.get('default','root')
     env.password=cf.get('default','passwd')
