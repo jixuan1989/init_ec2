@@ -196,7 +196,8 @@ def ssh3():
 #    *i *);;
 #    * ) return;;
 #    esac
-roles('server')
+
+@roles('server')
 def correct_bashrc():
     normalUser()
     put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),'fabric-tmp.sh',744)
