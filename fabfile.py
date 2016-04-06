@@ -65,6 +65,7 @@ env.roledefs={
 @roles('server')
 def createUser():
     with settings(warn_only=True):
+        passwd=cf.get(activeSession,'passwd')
         with settings(prompts={
             '输入新的 UNIX 密码： ': passwd,
             'Enter new UNIX password: ': passwd,
