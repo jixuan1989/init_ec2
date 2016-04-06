@@ -1,0 +1,9 @@
+[global]
+root = fit
+passwd =
+[server]
+newuser = hxd
+passwd =
+[client]
+newuser = hxd
+passwd =
