@@ -15,15 +15,33 @@ env.password = cf.get('global','passwd')
 
 def lambdastrp(x):
     return x.strip()
-env.hosts=map(lambdastrp, cf.get(activeSession,'hosts').split(','))
-env.hostnames=map(lambdastrp,cf.get(activeSession,'hostnames').split(','))
-env.hostmap={}
+
+class MyEnv:
+    hosts=[]
+    hostnames=[]
+    hostmap={}
+myenv=MyEnv()
+myenv.hosts=map(lambdastrp, cf.get(activeSession,'hosts').split(','))
+myenv.hostnames=map(lambdastrp,cf.get(activeSession,'hostnames').split(','))
 
 i=0
-while i<len(env.hosts):
-    env.hostmap[env.hosts[i]]=env.hostnames[i]
+while i<len(myenv.hosts):
+    myenv.hostmap[myenv.hosts[i]]=myenv.hostnames[i]
     i=i+1
 
+env.roledefs={
+    'root':{
+        'user': cf.get('global','root'),
+        'password': cf.get('global','passwd'),
+        'hosts':myenv.hosts
+    },
+    'server':{
+        'user': cf.get(activeSession,'newuser'),
+        'passowrd': cf.get(activeSession,'passwd'),
+        'hosts':myenv.hosts
+    }
+
+}
 #env.roledefs = {
 #    'server': {
 #        'hosts': ['192.168.130.3', '192.168.130.5', '192.168.130.6', '192.168.130.7', '192.168.130.8',
@@ -76,16 +94,16 @@ def addIntoHostFile():
 def generateHosts():
     hosts=''
     i=0
-    size=len(env.hosts)
+    size=len(myenv.hosts)
     while i<size:
-        hosts = hosts + '\n' + env.hosts[i] + '\t' + env.hostnames[i]
+        hosts = hosts + '\n' + myenv.hosts[i] + '\t' + myenv.hostnames[i]
         i=i+1
 
     return hosts
 
 #修改hostname
 def changeHostname():
-    hostname=env.hostmap[env.host]
+    hostname=myenv.hostmap[env.host]
 #    print hostname
     sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
     sudo('echo '+ hostname+' >/etc/hostname' )
@@ -124,3 +142,8 @@ def test4():
     a=a.split(',')
     print type(a)
     print a
+
+@roles('server')
+def test5():
+    print env.real_fabfile
+    run('ls ./')
