@@ -211,5 +211,5 @@ def installnptserver():
     with settings(prompts={
         'Do you want to continue? [Y/n] ':'Y'
     }):
-    rootUser()
-    sudo('apt-get install ntp')
+        rootUser()
+        sudo('apt-get install ntp')
