@@ -189,3 +189,17 @@ def ssh2():
 def ssh3():
     for node in myenv.hosts:
         os.remove(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
+
+
+#to enable the bashrc file,we should delete these sentences if they exists:
+#case $- in
+#    *i *);;
+#    * ) return;;
+#    esac
+roles('server')
+def correct_bashrc():
+    normalUser()
+    put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),'fabric-tmp.sh',744)
+    run('~/fabric-tmp.sh')
+    run('rm ~/fabric-tmp.sh')
+
