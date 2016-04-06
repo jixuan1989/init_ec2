@@ -1,9 +1,9 @@
 # init_ec2
-This project help users to initialize a new cluster.
+This project helps users to initialize a new cluster.
 
 It is suitable for:
  
- * a real cluster, which is consists of PCs, small servers or other machines you own.
+ * a real cluster, which consists of PCs, small servers or other  physical machines you own.
  * cloud environment, such as Amazon EC2, aliyun. 
 
 The only conditions you should have are:
