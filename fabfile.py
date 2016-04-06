@@ -170,15 +170,18 @@ def ssh1():
         'Enter file in which to save the key (/home/'+env.user+'/.ssh/id_rsa): ': '',
         'Enter passphrase (empty for no passphrase): ': '',
         'Enter same passphrase again: ': '',
-        'Overwrite (y/n)?': 'y'
+        'Overwrite (y/n)? ': 'y'
     }):
         run('ssh-keygen -t rsa ')
+        if not os.path.exists(os.path.join(os.path.split(env.real_fabfile)[0], 'files')):
+            os.mkdir(os.path.join(os.path.split(env.real_fabfile)[0], 'files'))
         get(os.path.join('/home',env.user,'.ssh/id_rsa.pub'), os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
 
 @roles('server')
 def ssh2():
     normalUser()
-    f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
-    pem=f.readline()
-    f.close()
-    print env.host+"-->"+pem
+    for node in myenv.hosts:
+        f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
+        pem=f.readline()
+        f.close()
+        run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
