@@ -214,7 +214,7 @@ def installnptserver():
         rootUser()
         sudo('apt-get install ntp')
         sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
-
+        sudo('/etc/init.d/ntp restart')
 
 
 @roles('server')
