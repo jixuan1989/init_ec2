@@ -40,20 +40,20 @@ def createUser(name, passwd):
             'Enter new UNIX password: ': passwd,
             '重新输入新的 UNIX 密码： ': passwd,
             'Retype new UNIX password: ': passwd,
-            '全名 []: ':'\n',
-            'Full Name []: ': '\n',
-            '房间号码 []: ':'\n',
-            'Room Number []: ': '\n',
-            '工作电话 []: ': '\n',
-            'Work Phone []: ': '\n',
-            '家庭电话 []: ': '\n',
-            'Home Phone []: ': '\n',
-            '其它 []: ': '\n',
-            'Other []: ': '\n',
-            '这些信息是否正确？ [Y/n] ': 'y',
-            'Is the information correct? [Y/n] ': 'y',
+            '全名 []: ':'hxd',
+            'Full Name []: ': 'hxd',
+            '房间号码 []: ':'no',
+            'Room Number []: ': 'no',
+            '工作电话 []: ': '130',
+            'Work Phone []: ': '130',
+            '家庭电话 []: ': '130',
+            'Home Phone []: ': '130',
+            '其它 []: ': 'no',
+            'Other []: ': 'no',
+            '这些信息是否正确？ [Y/n] ': 'Y',
+            'Is the information correct? [Y/n] ': 'Y',
             }):
-            sudo('adduser '+name ,pty=False, combine_stderr=False)
+            sudo('adduser '+name ,pty=True, combine_stderr=True)
 
 @roles('client')
 def test():
