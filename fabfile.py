@@ -129,7 +129,7 @@ def distributeJDK():
     env.password=cf.get(activeSession,'passwd')
     put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
     run('tar -xzf '+ os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
-    run('echo "export JAVA_HOME='+os.path.join('/home/',env.user,'fabric-jdk.tar.gz', cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
+    run('echo "export JAVA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
     run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
     run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
 
