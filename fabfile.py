@@ -213,3 +213,14 @@ def installnptserver():
     }):
         rootUser()
         sudo('apt-get install ntp')
+        sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
+
+
+
+@roles('server')
+def setnpttaks():
+    rootUser()
+    sudo('echo "#!/bin/bash" >> /etc/cron.daily/myntp')
+    sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
+    sudo('chmod 755 /etc/cron.daily/myntp')
+
