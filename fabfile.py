@@ -227,4 +227,4 @@ def setnpttaks():
 @roles('server')
 def restart():
     rootUser()
-    sudo('shutdown -r +1')
+    reboot()
