@@ -150,3 +150,11 @@ def test4():
 def test5():
     print env.real_fabfile
     run('ls ./')
+
+def ssh():
+    with settings(prompts={
+        'Enter file in which to save the key (/home/'+env.user+'/.ssh/id_rsa): ': '',
+        'Enter passphrase (empty for no passphrase): ': '',
+        'Enter same passphrase again: ': ''
+    }):
+        run('ssh-keygen -t rsa ')
