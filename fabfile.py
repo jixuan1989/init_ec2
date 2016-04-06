@@ -84,7 +84,11 @@ def changeHostname():
 def removeClientUser():
     sudo('deluser '+ cf.get('client','newuser'), pty=False, combine_stderr=False)
 
-@roles('')
+@roles('client')
+def test3():
+    env.user=cf.get('client','newuser')
+    env.password=cf.get('client','password')
+    test2()
+
 def test2():
-    with settings(env.user=cf.get('client', 'newuser'),env.password = cf.get('client', 'passwd')):
         run('ls ./')
