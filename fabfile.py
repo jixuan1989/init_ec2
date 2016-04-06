@@ -224,3 +224,7 @@ def setnpttaks():
     sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
     sudo('chmod 755 /etc/cron.daily/myntp')
 
+@roles('server')
+def restart():
+    rootUser()
+    sudo('restart now')
