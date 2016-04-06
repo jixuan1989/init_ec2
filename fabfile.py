@@ -3,15 +3,22 @@ from fabric.api import *
 from fabric.contrib.console import confirm
 import ConfigParser
 import os
+import fileinput
+
 
 cf=ConfigParser.ConfigParser()
 cf.read('passwd.ini')
-activeSession=cf.get('global','activeSession')
+activeSession=cf.get('default','activeSession')
 #env.hosts=['localhost']
 env.disable_known_hosts=True
 #env.key_filename=['~/Desktop/hxd.pem']
-env.user=cf.get('global','root')
-env.password = cf.get('global','passwd')
+def rootUser():
+    env.user=cf.get('default','root')
+    env.password=cf.get('default','passwd')
+def normalUser():
+    env.user=cf.get(activeSession,'newuser')
+    env.password = cf.get(activeSession,'passwd')
+normalUser()
 
 def lambdastrp(x):
     return x.strip()
@@ -30,9 +37,6 @@ while i<len(myenv.hosts):
     i=i+1
 
 env.roledefs={
-    'root':{
-        'hosts':myenv.hosts
-    },
     'server':{
         'hosts':myenv.hosts
     }
@@ -55,10 +59,10 @@ env.roledefs={
 #        'hosts': ['localhost']
 #    }
 #}
-user=cf.get(activeSession,'newuser')
-passwd=cf.get(activeSession,'passwd')
+
+
 #批量创建用户
-@roles('root')
+@roles('server')
 def createUser():
     with settings(warn_only=True):
         with settings(prompts={
@@ -79,15 +83,18 @@ def createUser():
             '这些信息是否正确？ [Y/n] ': 'Y',
             'Is the information correct? [Y/n] ': 'Y',
             }):
-            sudo('adduser '+user ,pty=True, combine_stderr=True)
+            rootUser()
+            sudo('adduser '+cf.get(activeSession,'newuser') ,pty=True, combine_stderr=True)
 #批量删除用户
-@roles('root')
+@roles('server')
 def removeUser():
-    sudo('deluser '+ user, pty=True, combine_stderr=True)
+    rootUser()
+    sudo('deluser '+ cf.get(activeSession,'newuser'), pty=True, combine_stderr=True)
 
 #修改hosts
-@roles('root')
+@roles('server')
 def addIntoHostFile():
+    rootUser()
     sudo('echo "' + generateHosts() + '" >> /etc/hosts')
 
 def generateHosts():
@@ -101,8 +108,9 @@ def generateHosts():
     return hosts
 
 #修改hostname
-@roles('root')
+@roles('server')
 def changeHostname():
+    rootUser()
     hostname=myenv.hostmap[env.host]
 #    print hostname
     sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
@@ -114,6 +122,7 @@ def downloadJDK():
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
 @roles('server')
 def distributeJDK():
+    normalUser()
     print 'will create a temp file /home/username/fabric-jdk.tar.gz'
     env.user=cf.get(activeSession,'newuser')
     env.password=cf.get(activeSession,'passwd')
@@ -121,6 +130,7 @@ def distributeJDK():
     run('tar -xzf '+ os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
     run('echo "export JAVA_HOME='+os.path.join('/home/',env.user,'fabric-jdk.tar.gz', cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
     run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
+    run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
 
 @roles('server')
 def test3():
@@ -149,12 +159,25 @@ def test4():
 @roles('server')
 def test5():
     print env.real_fabfile
+    normalUser()
     run('ls ./')
-
-def ssh():
+#免密钥配置,先运行ssh1,再运行ssh2
+@roles('server')
+def ssh1():
+    normalUser()
     with settings(prompts={
         'Enter file in which to save the key (/home/'+env.user+'/.ssh/id_rsa): ': '',
         'Enter passphrase (empty for no passphrase): ': '',
-        'Enter same passphrase again: ': ''
+        'Enter same passphrase again: ': '',
+        'Overwrite (y/n)?': 'y'
     }):
         run('ssh-keygen -t rsa ')
+        get(os.path.join('/home',env.user,'.ssh/id_rsa.pub'), os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
+
+@roles('server')
+def ssh2():
+    normalUser()
+    f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
+    pem=f.readline()
+    f.close()
+    print env.host+"-->"+pem
