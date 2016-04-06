@@ -162,7 +162,7 @@ def test5():
     print env.real_fabfile
     normalUser()
     run('ls ./')
-#免密钥配置,先运行ssh1,再运行ssh2
+#免密钥配置,先运行ssh1,再运行ssh2,最后运行ssh3清理
 @roles('server')
 def ssh1():
     normalUser()
@@ -185,3 +185,7 @@ def ssh2():
         pem=f.readline()
         f.close()
         run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
+
+def ssh3():
+    for node in myenv.hosts:
+        os.remove(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
