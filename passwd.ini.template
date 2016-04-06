@@ -1,9 +1,28 @@
-[global]
-root = fit
+[default]
+#which section is actived
+activeSession=
+#the sudo user, only used for sudo tasks
+root =
+#passwd of sudoer
 passwd =
+
+#example of section
 [server]
-newuser = hxd
+#uesr name, if use createUser task, this user name will be the new user
+newuser =
+#password of newuser
 passwd =
-[client]
-newuser = hxd
-passwd =
+#cluster ips, use comma to split
+hosts=
+#hostnames of cluster , the number of hostnames must equal with hosts. the hostnames is used for changeHostname tass
+hostnames=
+#locally jdk file. the related path is ./
+jdk_source_file=
+# when the jdk.tar.gz is unziped, the folder in the tar file.
+jdk_folder=
+# the ntp server address you  want to sync
+ntp_server=
+# the allowed net that can sync with your ntp server
+ntp_net=
+# the allowed net mask that can sync with your ntp server
+ntp_net_mask=
