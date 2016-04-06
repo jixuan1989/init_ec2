@@ -95,10 +95,11 @@ def downloadJDK():
     pass
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
 def distributeJDK():
-    put('jdk1.8.77.tar.gz', 'jdk1.8.77.tar.gz')
-    run('tar -xzf jdk1.8.77.tar.gz')
-    run('echo "export JAVA_HOME=/home/'+user+'/jdk1.8.0_77">~/.bashrc')
-    run('echo "export PATH=$JAVA_HOME/bin:$PATH" >>~/.bashrc')
+    #with lcd("~"):
+	#put('/home/hxd/jdk1.8.77.tar.gz', './jdk1.8.77.tar.gz')
+    	#run('tar -xzf jdk1.8.77.tar.gz')
+    	run('echo "export JAVA_HOME=/home/'+env.user+'/jdk1.8.0_77">>~/.bashrc')
+    	run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
 
 @roles('client')
 def test3():
