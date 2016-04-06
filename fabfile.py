@@ -205,3 +205,10 @@ def correct_bashrc():
     run(os.path.join('/home',env.user,'fabric-tmp.sh'))
     run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
 
+#only one server need to install npt server, so remeber change your hosts before run this command
+@roles('server')
+def installnptserver():
+    with settings(prompts={
+        'Do you want to continue? [Y/n] ':'Y'
+    }):
+    sudo('apt-get install ntp')
