@@ -31,13 +31,9 @@ while i<len(myenv.hosts):
 
 env.roledefs={
     'root':{
-        'user': cf.get('global','root'),
-        'password': cf.get('global','passwd'),
         'hosts':myenv.hosts
     },
     'server':{
-        'user': cf.get(activeSession,'newuser'),
-        'passowrd': cf.get(activeSession,'passwd'),
         'hosts':myenv.hosts
     }
 
@@ -62,6 +58,7 @@ env.roledefs={
 user=cf.get(activeSession,'newuser')
 passwd=cf.get(activeSession,'passwd')
 #批量创建用户
+@roles('root')
 def createUser():
     with settings(warn_only=True):
         with settings(prompts={
@@ -84,10 +81,12 @@ def createUser():
             }):
             sudo('adduser '+user ,pty=True, combine_stderr=True)
 #批量删除用户
+@roles('root')
 def removeUser():
     sudo('deluser '+ user, pty=True, combine_stderr=True)
 
 #修改hosts
+@roles('root')
 def addIntoHostFile():
     sudo('echo "' + generateHosts() + '" >> /etc/hosts')
 
@@ -102,6 +101,7 @@ def generateHosts():
     return hosts
 
 #修改hostname
+@roles('root')
 def changeHostname():
     hostname=myenv.hostmap[env.host]
 #    print hostname
@@ -112,6 +112,7 @@ def changeHostname():
 def downloadJDK():
     pass
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
+@roles('root')
 def distributeJDK():
     #with lcd("~"):
 	#put('/home/hxd/jdk1.8.77.tar.gz', './jdk1.8.77.tar.gz')
@@ -119,7 +120,7 @@ def distributeJDK():
     	run('echo "export JAVA_HOME=/home/'+env.user+'/jdk1.8.0_77">>~/.bashrc')
     	run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
 
-@roles('client')
+@roles('server')
 def test3():
     env.user=cf.get('client','newuser')
     env.password=cf.get('client','passwd')
