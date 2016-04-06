@@ -1,15 +1,15 @@
 # init_ec2
-This project help users initialize a new cluster.
+This project help users to initialize a new cluster.
 
 It is suitable for:
  
- * a real cluster, which is consists of PCs, small servers.
+ * a real cluster, which is consists of PCs, small servers or other machines you own.
  * cloud environment, such as Amazon EC2, aliyun. 
 
 The only conditions you should have are:
 
-- you have install ubuntu (tested on 14.04) OS on all the nodes. (it is always eligibly in cloud environments, e.g., EC2, aliyun)
-- you  know/set the ip address on each node. 
+- you have installed ubuntu (tested on 14.04) OS on all the nodes. (it is always eligibly in cloud environments, e.g., EC2, aliyun)
+- you  know or have set the ip address on each node. 
 - python 2.7 has been installed on your laptop/PC. (unless you use a Windows OS, otherwise you are eligibly. on Windows, you need to install Python yourself)
 - fabric (version >=1.10) has been installed on your laptop/PC
 	- it seems a little harder than above steps. But believe me, you deserve it! 
