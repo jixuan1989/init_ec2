@@ -181,7 +181,7 @@ def ssh1():
 def ssh2():
     normalUser()
     for node in myenv.hosts:
-        f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
+        f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+node))
         pem=f.readline()
         f.close()
         run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
