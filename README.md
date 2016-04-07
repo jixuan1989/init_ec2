@@ -92,6 +92,8 @@ init EC2 cluster, for free-password-login(ubuntu and root). for hostname, for ho
    
    `fab task_name` 
    
+   you can use `fab help` to show how many tasks supportted.
+   
    current supportted tasks:
    
     * createUser
@@ -115,11 +117,11 @@ init EC2 cluster, for free-password-login(ubuntu and root). for hostname, for ho
     		- fab ssh3  (cleanup)
     * restart
     	- reboot the cluster
-	
-    * TODO: we will add new tasks to help user add new nodes in an existed cluster
     * correct_bashrc
     	- normally, we use `ssh hxd@node1 "jps"`, the terminal says: jps command not found, though we have set $JAVA_HOME and $PATH in .bashrc file. The reason is that .bashrc is ignored when we run a non-interactive login command. To solve that, use this task to repair the bashrc file.
-    	
+    * modifyAtpSource
+    	- modify the apt sources.list as files/sources.list.
+    * TODO: we will add new tasks to help user add new nodes in an existed cluster    	
  
 ##Amazon Ec2 (or other pem based ssh)
 in Amazon Ec2, we use a pem file to login instead of password.
