@@ -238,7 +238,6 @@ def restart():
 @roles('server')
 def modifyAptSource():
     __rootUser()
-    f = fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
     sudo('mv /etc/apt/sources.list /etc/apt/sources.list_bk')
     for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
         sudo('echo "'+line+'" >> /etc/apt/sources.list')
