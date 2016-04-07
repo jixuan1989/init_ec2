@@ -205,11 +205,11 @@ def sudossh1():
         'Overwrite (y/n)? ': 'y'
     }):
         sudo('ssh-keygen -t rsa ')
-        sudo('cp /root/.ssh/id_rsa.pub  '+ os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'))
-        sudo('chmod 644 '+ os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'))
+        sudo('cp /root/.ssh/id_rsa.pub  '+ os.path.join('/home', env.user, 'id_rsa_for_root.pub'))
+        sudo('chmod 644 '+ os.path.join('/home', env.user, 'id_rsa_for_root.pub'))
         if not os.path.exists(os.path.join(os.path.split(env.real_fabfile)[0], 'files')):
             os.mkdir(os.path.join(os.path.split(env.real_fabfile)[0], 'files'))
-        get(os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'),
+        get(os.path.join('/home', env.user, 'id_rsa_for_root.pub'),
             os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + env.host))
 
 @roles('server')
