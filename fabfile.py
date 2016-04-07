@@ -242,3 +242,11 @@ def modifyAptSource():
     for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
         sudo('echo "'+line+'" >> /etc/apt/sources.list')
     sudo('apt-get update')
+
+#will modify dns address in /etc/resolvconf/resolv.conf.d/base
+@roles('server')
+def settingDNS():
+    __rootUser()
+    for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/dns_address')):
+        sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
+    sudo('resolvconf -u')

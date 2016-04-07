@@ -3,3 +3,4 @@ passwd.ini
 *.pyc
 files/*
 !files/sources.list
+!files/dns_address
