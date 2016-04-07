@@ -234,13 +234,19 @@ def restart():
     __rootUser()
     reboot()
 
-#修改apt-source
+#修改apt-source, will update automatically
 @roles('server')
 def modifyAptSource():
     __rootUser()
     sudo('mv /etc/apt/sources.list /etc/apt/sources.list_bk')
     for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
         sudo('echo "'+line+'" >> /etc/apt/sources.list')
+    sudo('apt-get update')
+
+#only update apt , do not modify sources.list
+@roles('server')
+def updateApt():
+    __rootUser()
     sudo('apt-get update')
 
 #will modify dns address in /etc/resolvconf/resolv.conf.d/base
