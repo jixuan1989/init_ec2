@@ -2,3 +2,4 @@
 passwd.ini
 *.pyc
 files/*
+!files/sources.list

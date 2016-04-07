@@ -12,27 +12,27 @@ activeSession=cf.get('default','activeSession')
 #env.hosts=['localhost']
 env.disable_known_hosts=True
 
-# if you use Amazon Ec2. you need comment env.password=.... in rootUser()  and use the below code
+# if you use Amazon Ec2. you need comment env.password=.... in __rootUser()  and use the below code
 #env.key_filename=['~/Desktop/hxd.pem']
 
-def rootUser():
+def __rootUser():
     env.user=cf.get('default','root')
     env.password=cf.get('default','passwd')
-def normalUser():
+def __normalUser():
     env.user=cf.get(activeSession,'newuser')
     env.password = cf.get(activeSession,'passwd')
-normalUser()
+__normalUser()
 
-def lambdastrp(x):
+def __lambdastrp(x):
     return x.strip()
 
-class MyEnv:
+class __MyEnv:
     hosts=[]
     hostnames=[]
     hostmap={}
-myenv=MyEnv()
-myenv.hosts=map(lambdastrp, cf.get(activeSession,'hosts').split(','))
-myenv.hostnames=map(lambdastrp,cf.get(activeSession,'hostnames').split(','))
+myenv=__MyEnv()
+myenv.hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
+myenv.hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
 
 i=0
 while i<len(myenv.hosts):
@@ -87,21 +87,21 @@ def createUser():
             '这些信息是否正确？ [Y/n] ': 'Y',
             'Is the information correct? [Y/n] ': 'Y',
             }):
-            rootUser()
+            __rootUser()
             sudo('adduser '+cf.get(activeSession,'newuser') ,pty=True, combine_stderr=True)
 #批量删除用户
 @roles('server')
 def removeUser():
-    rootUser()
+    __rootUser()
     sudo('deluser '+ cf.get(activeSession,'newuser'), pty=True, combine_stderr=True)
 
 #修改hosts
 @roles('server')
 def addIntoHostFile():
-    rootUser()
-    sudo('echo "' + generateHosts() + '" >> /etc/hosts')
+    __rootUser()
+    sudo('echo "' + __generateHosts() + '" >> /etc/hosts')
 
-def generateHosts():
+def __generateHosts():
     hosts=''
     i=0
     size=len(myenv.hosts)
@@ -114,7 +114,7 @@ def generateHosts():
 #修改hostname
 @roles('server')
 def changeHostname():
-    rootUser()
+    __rootUser()
     hostname=myenv.hostmap[env.host]
 #    print hostname
     sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
@@ -126,7 +126,7 @@ def downloadJDK():
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
 @roles('server')
 def distributeJDK():
-    normalUser()
+    __normalUser()
     print 'will create a temp file /home/username/fabric-jdk.tar.gz'
     env.user=cf.get(activeSession,'newuser')
     env.password=cf.get(activeSession,'passwd')
@@ -163,12 +163,12 @@ def test4():
 @roles('server')
 def test5():
     print env.real_fabfile
-    normalUser()
+    __normalUser()
     run('ls ./')
 #免密钥配置,先运行ssh1,再运行ssh2,最后运行ssh3清理
 @roles('server')
 def ssh1():
-    normalUser()
+    __normalUser()
     with settings(prompts={
         'Enter file in which to save the key (/home/'+env.user+'/.ssh/id_rsa): ': '',
         'Enter passphrase (empty for no passphrase): ': '',
@@ -182,13 +182,13 @@ def ssh1():
 
 @roles('server')
 def ssh2():
-    normalUser()
+    __normalUser()
     for node in myenv.hosts:
         f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+node))
         pem=f.readline()
         f.close()
         run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
-
+#清理程序
 def ssh3():
     for node in myenv.hosts:
         os.remove(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
@@ -199,35 +199,47 @@ def ssh3():
 #    *i *);;
 #    * ) return;;
 #    esac
-
+#修正bashrc中的问题
 @roles('server')
 def correct_bashrc():
-    normalUser()
+    __normalUser()
     put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),os.path.join('/home',env.user,'fabric-tmp.sh'))
     run ('chmod +x '+os.path.join('/home',env.user,'fabric-tmp.sh'))
     run(os.path.join('/home',env.user,'fabric-tmp.sh'))
     run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
 
 #only one server need to install npt server, so remeber change your hosts before run this command
+#给机器安装ntp服务端
 @roles('server')
-def installnptserver():
+def installNTPserver():
     with settings(prompts={
         'Do you want to continue? [Y/n] ':'Y'
     }):
-        rootUser()
+        __rootUser()
         sudo('apt-get install ntp')
         sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
         sudo('/etc/init.d/ntp restart')
 
-
+#设置npt客户端定期任务
 @roles('server')
-def setnpttaks():
-    rootUser()
+def setNTPtasks():
+    __rootUser()
     sudo('echo "#!/bin/bash" >> /etc/cron.daily/myntp')
     sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
     sudo('chmod 755 /etc/cron.daily/myntp')
 
+#重启机器
 @roles('server')
 def restart():
-    rootUser()
+    __rootUser()
     reboot()
+
+#修改apt-source
+@roles('server')
+def modifyAptSource():
+    __rootUser()
+    f = fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
+    sudo('mv /etc/apt/sources.list /etc/apt/sources.list_bk')
+    for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
+        sudo('echo "'+line+'" >> /etc/apt/sources.list')
+    sudo('apt-get update')
