@@ -195,6 +195,7 @@ def ssh3():
         os.remove(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
 
 #if you only know sudo account password, and you want to configure password-free for root. you have to use this task.
+@roles('server')
 def sudossh1():
     __rootUser()
     with settings(prompts={
