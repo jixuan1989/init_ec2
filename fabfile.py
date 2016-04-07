@@ -196,7 +196,7 @@ def ssh3():
 
 #if you only know sudo account password, and you want to configure password-free for root. you have to use this task.
 def sudossh1():
-    __rootlUser()
+    __rootUser()
     with settings(prompts={
                         'Enter file in which to save the key (/root/.ssh/id_rsa): ': '',
         'Enter passphrase (empty for no passphrase): ': '',
