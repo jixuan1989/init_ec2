@@ -165,6 +165,7 @@ def test5():
     print env.real_fabfile
     __normalUser()
     run('ls ./')
+
 #免密钥配置,先运行ssh1,再运行ssh2,最后运行ssh3清理
 @roles('server')
 def ssh1():
@@ -192,6 +193,32 @@ def ssh2():
 def ssh3():
     for node in myenv.hosts:
         os.remove(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
+
+#if you only know sudo account password, and you want to configure password-free for root. you have to use this task.
+def sudossh1():
+    __rootlUser()
+    with settings(prompts={
+                        'Enter file in which to save the key (/root/.ssh/id_rsa): ': '',
+        'Enter passphrase (empty for no passphrase): ': '',
+        'Enter same passphrase again: ': '',
+        'Overwrite (y/n)? ': 'y'
+    }):
+        sudo('ssh-keygen -t rsa ')
+        sudo('cp /root/.ssh/id_rsa.pub  '+ os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'))
+        sudo('chmod 644 '+ os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'))
+        if not os.path.exists(os.path.join(os.path.split(env.real_fabfile)[0], 'files')):
+            os.mkdir(os.path.join(os.path.split(env.real_fabfile)[0], 'files'))
+        get(os.path.join('/home', env.user, '.ssh/id_rsa_for_root.pub'),
+            os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + env.host))
+
+@roles('server')
+def sudossh2():
+    __rootUser()
+    for node in myenv.hosts:
+        f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+node))
+        pem=f.readline()
+        f.close()
+        sudo('echo "'+pem+ '" >> /root/.ssh/authorized_keys')
 
 
 #to enable the bashrc file,we should delete these sentences if they exists:

@@ -12,5 +12,5 @@ def installCouch():
     sudo('add-apt-repository ppa:couchdb/stable -y')
     sudo('apt-get update -y')
     sudo('apt-get remove couchdb couchdb-bin couchdb-common -yf')
-    sudo('apt-get install -V couchdb')
+    sudo('apt-get install -V couchdb -y')
     sudo('couchdb stop')
