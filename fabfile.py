@@ -211,7 +211,7 @@ def sudossh1():
             os.mkdir(os.path.join(os.path.split(env.real_fabfile)[0], 'files'))
         get(os.path.join('/home', env.user, 'id_rsa_for_root.pub'),
             os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + env.host))
-
+        sudo('rm '+ os.path.join('/home', env.user, 'id_rsa_for_root.pub'))
 @roles('server')
 def sudossh2():
     __rootUser()
