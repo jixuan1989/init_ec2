@@ -284,3 +284,4 @@ def settingDNS():
     for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/dns_address')):
         sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
     sudo('resolvconf -u')
+

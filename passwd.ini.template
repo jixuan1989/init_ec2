@@ -26,3 +26,21 @@ ntp_server=
 ntp_net=
 # the allowed net mask that can sync with your ntp server
 ntp_net_mask=
+
+
+
+
+##this is for different big data system (some are not big data )
+[couch]
+newuser =
+passwd =
+hosts=
+hostnames=
+jdk_source_file=
+jdk_folder=
+#bind which ip address for the couchdb #if not 0.0.0.0, only one server is successful installed
+bind_address=
+
+[collectd]
+inflexdb_ip=
+inflexdb_port=
