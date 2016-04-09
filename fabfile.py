@@ -285,3 +285,17 @@ def settingDNS():
         sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
     sudo('resolvconf -u')
 
+@roles('server')
+def addDisk(device,location):
+    __rootUser()
+    sudo('mkdir ' + location)
+    with settings(prompts={
+        'Proceed anyway? (y,n) ': 'y'
+    }):
+        #print device
+        #print location
+        sudo('mkfs -t ext4 ' + device)
+        sudo('mount -t ext4 ' + device +  ' ' + location)
+        sudo('chmod -R 777 ' + location)
+        sudo('echo "'+"#"+device+'">>/etc/fstab')
+        sudo("echo " +"'UUID='`blkid|grep sdb|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")

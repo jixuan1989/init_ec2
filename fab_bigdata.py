@@ -10,6 +10,7 @@ def test():
 # currently, couchdb is not a cluster. instead, each node is a single instance. so you'd better to just use one node.
 #just for ubuntu 14.04, see https://launchpad.net/~couchdb/+archive/ubuntu/stable
 
+@roles('server')
 def installCouch():
     fabfile.__rootUser()
     sudo('apt-get install software-properties-common -y')
@@ -18,6 +19,7 @@ def installCouch():
     sudo('apt-get remove couchdb couchdb-bin couchdb-common -yf')
     sudo('apt-get install -V couchdb -y')
     sudo('couchdb stop')
+    sudo('')
 
 @roles('server')
 def installCollectd():
