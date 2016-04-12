@@ -77,3 +77,7 @@ def distributeCassandra():
         put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'cassandra_file')), os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
         run('tar -xzf '+ os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
         cassandra_path=os.path.join('/home',env.user,cf.get(activeSession,'cassandra_folder'))
+        yaml=os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'cassandra_file'),'cassandra.yaml')
+        logback=os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'cassandra_file'),'cassandra-logback.xml')
+        put(yaml,os.path.join(cassandra_path,'conf/cassandra.yaml'))
+        put(logback, os.path.join(cassandra_path, 'conf/logback.yaml'))
