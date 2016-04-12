@@ -102,7 +102,7 @@ def runCassandra(status='stop'):
             if(status=='start'):
                 run(os.path.join(cassandra_path,'bin/cassandra')+' -f -p cassandraPID')
             elif(status=='stop'):
-                run('cat cassandraPID| xargs kill')
+                run('cat ' +os.path.join('/home',env.user,'cassandraPID')+'| xargs kill')
             else:
                 print 'unknow command '+ status+", only support start or stop"
 
