@@ -120,13 +120,16 @@ def createUser():
             __rootUser()
             if((not myenv.append) or env.host in myenv.new_hosts):
                 sudo('adduser '+cf.get(activeSession,'newuser') ,pty=True, combine_stderr=True)
+            else:
+                print "skip existed node:" + env.host
 #批量删除用户
 @roles('server')
 def removeUser():
     __rootUser()
     if ((not myenv.append) or env.host in myenv.new_hosts):
         sudo('deluser '+ cf.get(activeSession,'newuser'), pty=True, combine_stderr=True)
-
+    else:
+        print "skip existed node:" +env.host
 #修改hosts
 @roles('server')
 def addIntoHostFile():
@@ -168,7 +171,8 @@ def changeHostname():
         sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
         sudo('echo '+ hostname+' >/etc/hostname' )
         sudo('hostname '+ hostname)
-
+    else:
+        print "skip existed node:" + env.host
 #def downloadJDK():
 #    pass
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
@@ -184,6 +188,8 @@ def distributeJDK():
         run('echo "export JAVA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
         run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
         run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+    else:
+        print "skip existed node:" + env.host
 
 @roles('server')
 def __test3():
@@ -291,7 +297,8 @@ def correct_bashrc():
         run ('chmod +x '+os.path.join('/home',env.user,'fabric-tmp.sh'))
         run(os.path.join('/home',env.user,'fabric-tmp.sh'))
         run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
-
+    else:
+        print "skip existed node:" + env.host
 #only one server need to install npt server, so remeber change your hosts before run this command
 #给机器安装ntp服务端
 @roles('server')
@@ -308,7 +315,8 @@ def installNTPserver(multi='n'):
                 sudo('apt-get install ntp')
                 sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
                 sudo('/etc/init.d/ntp restart')
-
+            else:
+                print "skip existed node:" + env.host
 #设置npt客户端定期任务
 @roles('server')
 def setNTPtasks():
@@ -317,6 +325,8 @@ def setNTPtasks():
         sudo('echo "#!/bin/bash" >> /etc/cron.daily/myntp')
         sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
         sudo('chmod 755 /etc/cron.daily/myntp')
+    else:
+        print "skip existed node:" + env.host
 
 #重启机器
 @roles('server')
@@ -324,7 +334,8 @@ def restart():
     __rootUser()
     if ((not myenv.append) or env.host in myenv.new_hosts):
         reboot()
-
+    else:
+        print "skip existed node:" + env.host
 #修改apt-source, will update automatically
 @roles('server')
 def modifyAptSource():
@@ -334,6 +345,8 @@ def modifyAptSource():
         for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
             sudo('echo "'+line+'" >> /etc/apt/sources.list')
         sudo('apt-get update')
+    else:
+        print "skip existed node:" + env.host
 
 #only update apt , do not modify sources.list
 @roles('server')
@@ -350,7 +363,8 @@ def settingDNS():
         for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/dns_address')):
             sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
         sudo('resolvconf -u')
-
+    else:
+        print "skip existed node:" + env.host
 #挂载磁盘
 @roles('server')
 def addDisk(device,location):
@@ -367,3 +381,5 @@ def addDisk(device,location):
             sudo('chmod -R 777 ' + location)
             sudo('echo "'+"#"+device+'">>/etc/fstab')
             sudo("echo " +"'UUID='`blkid|grep sdb|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")
+    else:
+        print "skip existed node:" +env.host
