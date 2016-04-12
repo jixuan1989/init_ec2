@@ -90,8 +90,9 @@ def runCassandra(status='stop'):
         fabfile.__normalUser()
         with cd('~'):
             cassandra_path=os.path.join('/home',env.user,fabfile.cf.get('cassandra','cassandra_folder'))
+            print cassandra_path
             if(status=='start'):
-                run(os.path.join(cassandra_path,'/bin/cassandra')+' -p cassandraPID')
+                run(os.path.join(cassandra_path,'bin/cassandra')+' -p cassandraPID')
             elif(status=='stop'):
                 run('cat cassandraPID| xargs kill')
             else:
