@@ -251,6 +251,19 @@ def ssh2():
         if((not myenv.append) or env.host in myenv.new_hosts or node in myenv.new_hosts):
             run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
 
+# a special ssh setting. only one server can ssh others, that is : one to all, not all to all.
+@roles('server')
+def ssh2_OneToAll():
+    __normalUser()
+    special=cf.get(activeSession,'admin_ip')
+    #for node in myenv.hosts:
+    f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+special))
+    pem=f.readline()
+    f.close()
+    if((not myenv.append) or env.host in myenv.new_hosts):
+        run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
+
+
 #清理程序
 def ssh3():
     for node in myenv.hosts:
