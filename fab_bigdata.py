@@ -99,7 +99,8 @@ def runCassandra(status='stop'):
         cassandra_path=os.path.join('/home',env.user,fabfile.cf.get('cassandra','cassandra_folder'))
         print cassandra_path
         if(status=='start'):
-            out=run(os.path.join(cassandra_path,'bin/cassandra')+' -p cassandraPID',pty=True, combine_stderr=True)
+            out=run(os.path.join(cassandra_path,'bin/cassandra')+' ',pty=True, combine_stderr=True)
+            print out
         elif(status=='stop'):
             pid=run('cat '+os.path.join('/home',env.user,'cassandraPID'))
             run("kill -9 "+pid)
