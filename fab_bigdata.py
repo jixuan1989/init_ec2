@@ -83,3 +83,16 @@ def distributeCassandra():
         logback=os.path.join(os.path.split(env.real_fabfile)[0], 'files/cassandra-logback.xml')
         put(yaml,os.path.join(cassandra_path,'conf/cassandra.yaml'))
         put(logback, os.path.join(cassandra_path, 'conf/logback.yaml'))
+
+@roles('server')
+def runCassandra(status='stop'):
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        with cd('~'):
+            cassandra_path=os.path.join('/home',env.user,fabfile.cf.get('cassandra','cassandra_folder'))
+            if(status=='start'):
+                run(os.path.join(cassandra_path,'/bin/cassandra')+' -p cassandraPID')
+            elif(status=='stop'):
+                run('cat cassandraPID| xargs kill')
+            else:
+                print 'unknow command '+ status+", only support start or stop"
