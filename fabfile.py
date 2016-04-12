@@ -380,6 +380,6 @@ def addDisk(device,location):
             sudo('mount -t ext4 ' + device +  ' ' + location)
             sudo('chmod -R 777 ' + location)
             sudo('echo "'+"#"+device+'">>/etc/fstab')
-            sudo("echo " +"'UUID='`blkid|grep sdb|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")
+            sudo("echo " +"'UUID='`blkid|grep "+device+"|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")
     else:
         print "skip existed node:" +env.host
