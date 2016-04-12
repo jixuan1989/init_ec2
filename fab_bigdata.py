@@ -74,6 +74,7 @@ def distributeCassandra():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         fabfile.__normalUser()
         print 'will create a temp file /home/username/fabric-cassandra.tar.gz'
+        cf=fabfile.cf
         put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'cassandra_file')), os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
         run('tar -xzf '+ os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
         cassandra_path=os.path.join('/home',env.user,cf.get(activeSession,'cassandra_folder'))
