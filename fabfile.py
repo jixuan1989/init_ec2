@@ -58,14 +58,16 @@ if(len(cf.get(activeSession,'existed_hosts'))!=0):
     while i < len(myenv.existed_hosts):
         myenv.existed_hostmap[myenv.existed_hosts[i]] = myenv.existed_hostnames[i]
         i = i + 1
+
     myenv.new_hosts=myenv.hosts[:]
     myenv.new_hostnames=myenv.hostnames[:]
     myenv.new_hostmap=myenv.hostmap.copy()
+
     for a in myenv.existed_hosts:
-        myenv.new_hosts.pop(a)
+        myenv.new_hosts.remove(a)
         myenv.new_hostmap.pop(a)
     for a in myenv.existed_hostnames:
-        myenv.new_hostnames.pop(a)
+        myenv.new_hostnames.remove(a)
 
 env.roledefs={
     'server':{
