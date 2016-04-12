@@ -55,7 +55,7 @@ if(len(cf.get(activeSession,'existed_hosts'))!=0):
     myenv.existed_hosts=map(__lambdastrp, cf.get(activeSession,'existed_hosts').split(','))
     myenv.existed_hostnames = map(__lambdastrp, cf.get(activeSession, 'existed_hostnames').split(','))
     i = 0
-    while i < len(myenv.hosts):
+    while i < len(myenv.existed_hosts):
         myenv.existed_hostmap[myenv.existed_hosts[i]] = myenv.existed_hostnames[i]
         i = i + 1
     myenv.new_hosts=myenv.hosts[:]
