@@ -1,0 +1,12 @@
+cat $1 |grep "Parsing INSERT INTO" |awk -F '|' '{sum+=$7} END {print "(Parsing INSERT INTO...) ave=", sum/NR}'
+cat $1 |grep "Preparing statement" |awk -F '|' '{sum+=$7} END {print "(Preparing statement...) ave=", sum/NR}'
+cat $1 |grep "Determining replicas for mutation" |awk -F '|' '{sum+=$7} END {print "(Determining replicas for mutation...) ave=", sum/NR}'
+cat $1 |grep "Appending to commitlog" |awk -F '|' '{sum+=$7} END {print "(Appending to commitlog...) ave=", sum/NR}'
+cat $1 |grep "Adding to usertable memtable" |awk -F '|' '{sum+=$7} END {print "(Adding to usertable memtable...) ave=", sum/NR}'
+cat $1 |grep "Sending MUTATION message to" |awk -F '|' '{sum+=$7} END {print "(Sending MUTATION message to...) ave=", sum/NR}'
+cat $1 |grep "MUTATION message received from" |awk -F '|' '{sum+=$7} END {print "(MUTATION message received from...) ave=", sum/NR}'
+cat $1 |grep "Enqueuing response" |awk -F '|' '{sum+=$7} END {print "(Enqueuing response...) ave=", sum/NR}'
+cat $1 |grep "Sending REQUEST_RESPONSE message to" |awk -F '|' '{sum+=$7} END {print "(Sending REQUEST_RESPONSE message to...) ave=", sum/NR}'
+cat $1 |grep "REQUEST_RESPONSE message received" |awk -F '|' '{sum+=$7} END {print "(REQUEST_RESPONSE message received...) ave=", sum/NR}'
+cat $1 |grep "Processing response from" |awk -F '|' '{sum+=$7} END {print "(Processing response from...) ave=", sum/NR}'
+
