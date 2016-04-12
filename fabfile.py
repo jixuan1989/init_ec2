@@ -45,13 +45,15 @@ myenv.new_hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
 myenv.new_hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
 
 i=0
-while i<len(myenv.hosts):
+while i<len(myenv.new_hosts):
     myenv.new_hostmap[myenv.new_hosts[i]]=myenv.new_hostnames[i]
     i=i+1
 
 myenv.hosts = myenv.new_hosts[:]
 myenv.hostnames = myenv.new_hostnames[:]
 myenv.hostmap = myenv.new_hostmap.copy()
+
+
 
 if(len(cf.get(activeSession,'existed_hosts'))!=0):
     myenv.append=True
@@ -156,7 +158,12 @@ def __generateNewHosts():
     return hosts
 
 
-
+#@roles('server')
+#def correct_hosts():
+#    __rootUser()
+#    if ((not myenv.append) or env.host in myenv.new_hosts):
+#        hostname = myenv.hostmap[env.host]
+#        sudo("sed -i 's/127.0.0.1 "+hostname+"/ /g' /etc/hosts")
 
 #修改hostname
 @roles('server')
@@ -165,7 +172,7 @@ def changeHostname():
     if ((not myenv.append) or env.host in myenv.new_hosts):
         hostname=myenv.hostmap[env.host]
         #print hostname
-        sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
+        #sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
         sudo('echo '+ hostname+' >/etc/hostname' )
         sudo('hostname '+ hostname)
     else:

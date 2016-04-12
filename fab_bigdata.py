@@ -85,6 +85,14 @@ def distributeCassandra():
         put(logback, os.path.join(cassandra_path, 'conf/logback.yaml'))
 
 @roles('server')
+def modifyCassandra():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
+        yaml = os.path.join(os.path.split(env.real_fabfile)[0], 'files/cassandra.yaml')
+        put(yaml, os.path.join(cassandra_path, 'conf/cassandra.yaml'))
+
+@roles('server')
 def runCassandra(status='stop'):
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         fabfile.__normalUser()
@@ -97,3 +105,9 @@ def runCassandra(status='stop'):
                 run('cat cassandraPID| xargs kill')
             else:
                 print 'unknow command '+ status+", only support start or stop"
+
+@roles('server')
+def rmCassandraData(status='stop'):
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        run('rm -rf '+fabfile.cf.get('cassandra','data_folder'))
