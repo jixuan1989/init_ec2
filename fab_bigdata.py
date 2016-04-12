@@ -96,7 +96,6 @@ def modifyCassandra():
 def runCassandra(status='stop'):
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         fabfile.__normalUser()
-        with cd('~'):
             cassandra_path=os.path.join('/home',env.user,fabfile.cf.get('cassandra','cassandra_folder'))
             print cassandra_path
             if(status=='start'):
