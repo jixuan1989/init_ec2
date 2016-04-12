@@ -124,7 +124,39 @@ init EC2 cluster, for free-password-login(ubuntu and root). for hostname, for ho
     * addDisk
     	- when you add a new disk, you should format it and then mount it. this task help you. use `fab addDisk:device,location`. e.g., `fab addDisk:/dev/sdb,/datab`
     * TODO: we will add new tasks to help user add new nodes in an existed cluster    	
- 
+
+3. some bigdata system and monitor system. you can use it like `fab -f fab_bigdata taskname`
+
+    current supported task:
+
+    * installCollectd
+        - you need add a section in passwd.ini
+
+            [collectd]
+            #server ip tell the node that where to send the collected data
+            #the receiver should have a receive process. e.g. influxdb and others
+            #the most easy receiver is collected itself. In this way, you should modify the receiver's collectd configuration file yourself: /etc/collectd/collectd.conf
+            #in network plugin: replace "Server" by "Listen"
+            server_ip=
+            server_port=
+            #collect interval unit: second
+            interval=5
+    * runCollectd
+        - `fab -f fab_bigdata runCollectd:stop` or `fab -f fab_bigdata runCollectd:start`
+    * installGangliaClient
+        - ganglia is a master-slave architecture. now you can only install the client, ganglia-monitor. The master processes, gmetad  and ganglia-webfrontend, are not included.
+        - if you want to install the master processes, see https://www.digitalocean.com/community/tutorials/introduction-to-ganglia-on-ubuntu-14-04.
+        - to install the client process, you need a gmond.conf in files folder. Notice, modify the ip address in the file as your master ip, and modify the cluster name as the same as your master configuration.
+
+    * installCouch
+        - you can install CouchDB.
+        - normally, couchdb is a single-node. therefore, your active section.hosts should have only one ip. But if you exactly want to install couchdb on all the nodes, use `fab -f fab_bigdata installCouch:y`
+        - in current version, we do not modify the bind-address of CouchDB, the default is  localhost.
+    * runCouch
+        - you can start or stop CouchDB
+        - how to use: `fab -f fab_bigdata runCouch:'start'` or `fab -f fab_bigdata runCouch:'stop'` or `fab -f fab_bigdata runCouch:'start','y'` or  `fab -f fab_bigdata runCouch:'stop','y'`. 'y' means you have  couchdb on each node
+
+
 ##Amazon Ec2 (or other pem based ssh)
 in Amazon Ec2, we use a pem file to login instead of password.
 

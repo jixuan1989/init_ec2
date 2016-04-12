@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import fabfile
 from fabric.api import *
+import os
 
 env=fabfile.env
 
@@ -26,6 +27,17 @@ def installCouch(multi='n'):
             sudo('couchdb stop')
             #TODO: mudify the listen address of couchdb.
             #sudo('')
+            sudo('couchdb start')
+
+@roles('server')
+def runCouch(status='start',multi='n'):
+    if (len(env.hsots) > 1 and multi != 'y'):
+        print "if you are sure that you want to install couchdb server on multi servers, please use `fab installCouch:y`"
+        return
+    else:
+        if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+            fabfile.__rootUser()
+            sudo('couchdb '+status)
 
 @roles('server')
 def installCollectd():
@@ -46,14 +58,22 @@ def runCollectd(status='start'):
         fabfile.__rootUser()
         sudo("/etc/init.d/collectd "+status)
 
+#only client. you need to install server yourself now. (server has too many configurations that need to set. e.g., apache2 or nginx)
+@roles('server')
+def installGangliaClient():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__rootUser()
+        sudo('apt-get install -y ganglia-monitor')
+        put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/gmond.conf'),
+            os.path.join('/home', env.user, 'fabric-gmond.conf'))
+        sudo('cat '+os.path.join('/home', env.user, 'fabric-gmond.conf') +' > /etc/ganglia/gmond.conf')
+        sudo('service ganglia-monitor restart')
 
 @roles('server')
 def distributeCassandra():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         __normalUser()
         print 'will create a temp file /home/username/fabric-cassandra.tar.gz'
-        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
+        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'cassandra_file')), os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
         run('tar -xzf '+ os.path.join('/home',env.user,'fabric-cassandra.tar.gz'))
-        run('echo "export JAVA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
-        run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
-        run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+        cassandra_path=os.path.join('/home',env.user,cf.get(activeSession,'cassandra_folder'))
