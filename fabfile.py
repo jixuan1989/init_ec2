@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from fabric.api import *
+
 from fabric.contrib.console import confirm
 import ConfigParser
 import os
@@ -30,6 +31,15 @@ class __MyEnv:
     hosts=[]
     hostnames=[]
     hostmap={}
+    new_hosts=[]
+    new_hostnames=[]
+    new_hostmap={}
+    existed_hosts=[]
+    existed_hostnames=[]
+    existed_hostmap={}
+    append=False
+
+
 myenv=__MyEnv()
 myenv.hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
 myenv.hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
@@ -38,6 +48,24 @@ i=0
 while i<len(myenv.hosts):
     myenv.hostmap[myenv.hosts[i]]=myenv.hostnames[i]
     i=i+1
+
+
+if(len(cf.get(activeSession,'existed_hosts'))!=0):
+    myenv.append=True
+    myenv.existed_hosts=map(__lambdastrp, cf.get(activeSession,'existed_hosts').split(','))
+    myenv.existed_hostnames = map(__lambdastrp, cf.get(activeSession, 'existed_hostnames').split(','))
+    i = 0
+    while i < len(myenv.hosts):
+        myenv.existed_hostmap[myenv.existed_hosts[i]] = myenv.existed_hostnames[i]
+        i = i + 1
+    myenv.new_hosts=myenv.hosts[:]
+    myenv.new_hostnames=myenv.hostnames[:]
+    myenv.new_hostmap=myenv.hostmap.copy()
+    for a in myenv.existed_hosts:
+        myenv.new_hosts.pop(a)
+        myenv.new_hostmap.pop(a)
+    for a in myenv.existed_hostnames:
+        myenv.new_hostnames.pop(a)
 
 env.roledefs={
     'server':{
@@ -88,65 +116,84 @@ def createUser():
             'Is the information correct? [Y/n] ': 'Y',
             }):
             __rootUser()
-            sudo('adduser '+cf.get(activeSession,'newuser') ,pty=True, combine_stderr=True)
+            if((not myenv.append) or env.host in myenv.new_hosts):
+                sudo('adduser '+cf.get(activeSession,'newuser') ,pty=True, combine_stderr=True)
 #批量删除用户
 @roles('server')
 def removeUser():
     __rootUser()
-    sudo('deluser '+ cf.get(activeSession,'newuser'), pty=True, combine_stderr=True)
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('deluser '+ cf.get(activeSession,'newuser'), pty=True, combine_stderr=True)
 
 #修改hosts
 @roles('server')
 def addIntoHostFile():
     __rootUser()
-    sudo('echo "' + __generateHosts() + '" >> /etc/hosts')
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('echo "' + __generateHosts() + '" >> /etc/hosts')
+    else:
+        sudo('echo "' + __generateNewHosts() + '" >> /etc/hosts')
+
 
 def __generateHosts():
+    hosts = ''
+    i = 0
+    size = len(myenv.hosts)
+    while i < size:
+        hosts = hosts + '\n' + myenv.hosts[i] + '\t' + myenv.hostnames[i]
+        i = i + 1
+    return hosts
+
+def __generateNewHosts():
     hosts=''
     i=0
-    size=len(myenv.hosts)
+    size=len(myenv.new_hosts)
     while i<size:
-        hosts = hosts + '\n' + myenv.hosts[i] + '\t' + myenv.hostnames[i]
+        hosts = hosts + '\n' + myenv.new_hosts[i] + '\t' + myenv.new_hostnames[i]
         i=i+1
-
     return hosts
+
+
+
 
 #修改hostname
 @roles('server')
 def changeHostname():
     __rootUser()
-    hostname=myenv.hostmap[env.host]
-#    print hostname
-    sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
-    sudo('echo '+ hostname+' >/etc/hostname' )
-    sudo('hostname '+ hostname)
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        hostname=myenv.hostmap[env.host]
+        #print hostname
+        sudo('echo \'127.0.0.1 '+hostname+'\' >> /etc/hosts')
+        sudo('echo '+ hostname+' >/etc/hostname' )
+        sudo('hostname '+ hostname)
 
-def downloadJDK():
-    pass
+#def downloadJDK():
+#    pass
 #    local('wget --no-check-certificate --no-cookies --header Cookie: oraclelicense=accept-securebackup-cookie http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.tar.gz')
 @roles('server')
 def distributeJDK():
     __normalUser()
-    print 'will create a temp file /home/username/fabric-jdk.tar.gz'
-    env.user=cf.get(activeSession,'newuser')
-    env.password=cf.get(activeSession,'passwd')
-    put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
-    run('tar -xzf '+ os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
-    run('echo "export JAVA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
-    run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
-    run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        print 'will create a temp file /home/username/fabric-jdk.tar.gz'
+        env.user=cf.get(activeSession,'newuser')
+        env.password=cf.get(activeSession,'passwd')
+        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'jdk_source_file')), os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+        run('tar -xzf '+ os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
+        run('echo "export JAVA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'jdk_folder'))+'">>~/.bashrc')
+        run("echo 'export PATH=$JAVA_HOME/bin:$PATH' >>~/.bashrc")
+        run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
 
 @roles('server')
-def test3():
+def __test3():
     env.user=cf.get('client','newuser')
     env.password=cf.get('client','passwd')
     test2()
 
-def test2():
+def __test2():
         run('ls ./')
 
 @roles('test')
-def test():
+def __test():
     with settings(warn_only=True):
         cd('/')
         run('ls ./')
@@ -154,14 +201,14 @@ def test():
         #if result.failed and not confirm("Tests failed. Continue anyway?"):
         #    abort("Aborting at user request.")
 
-def test4():
+def __test4():
     a=cf.get('client','hosts')
     a=a.split(',')
     print type(a)
     print a
 
 @roles('server')
-def test5():
+def __test5():
     print env.real_fabfile
     __normalUser()
     run('ls ./')
@@ -176,7 +223,8 @@ def ssh1():
         'Enter same passphrase again: ': '',
         'Overwrite (y/n)? ': 'y'
     }):
-        run('ssh-keygen -t rsa ')
+        if ((not myenv.append) or env.host in myenv.new_hosts):
+            run('ssh-keygen -t rsa ')
         if not os.path.exists(os.path.join(os.path.split(env.real_fabfile)[0], 'files')):
             os.mkdir(os.path.join(os.path.split(env.real_fabfile)[0], 'files'))
         get(os.path.join('/home',env.user,'.ssh/id_rsa.pub'), os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+env.host))
@@ -188,7 +236,9 @@ def ssh2():
         f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+node))
         pem=f.readline()
         f.close()
-        run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
+        if((not myenv.append) or env.host in myenv.new_hosts or node in myenv.new_hosts):
+            run('echo "'+pem+ '" >> ~/.ssh/authorized_keys')
+
 #清理程序
 def ssh3():
     for node in myenv.hosts:
@@ -204,7 +254,8 @@ def sudossh1():
         'Enter same passphrase again: ': '',
         'Overwrite (y/n)? ': 'y'
     }):
-        sudo('ssh-keygen -t rsa ')
+        if ((not myenv.append) or env.host in myenv.new_hosts):
+            sudo('ssh-keygen -t rsa ')
         sudo('cp /root/.ssh/id_rsa.pub  '+ os.path.join('/home', env.user, 'id_rsa_for_root.pub'))
         sudo('chmod 644 '+ os.path.join('/home', env.user, 'id_rsa_for_root.pub'))
         if not os.path.exists(os.path.join(os.path.split(env.real_fabfile)[0], 'files')):
@@ -219,7 +270,9 @@ def sudossh2():
         f=fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/'+node))
         pem=f.readline()
         f.close()
-        sudo('echo "'+pem+ '" >> /root/.ssh/authorized_keys')
+        if ((not myenv.append) or env.host in myenv.new_hosts or node in myenv.new_hosts):
+            sudo('echo "' + pem + '" >> /root/.ssh/authorized_keys')
+
 
 
 #to enable the bashrc file,we should delete these sentences if they exists:
@@ -231,71 +284,84 @@ def sudossh2():
 @roles('server')
 def correct_bashrc():
     __normalUser()
-    put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),os.path.join('/home',env.user,'fabric-tmp.sh'))
-    run ('chmod +x '+os.path.join('/home',env.user,'fabric-tmp.sh'))
-    run(os.path.join('/home',env.user,'fabric-tmp.sh'))
-    run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        put(os.path.join(os.path.split(env.real_fabfile)[0], 'correct-bashrc.sh'),os.path.join('/home',env.user,'fabric-tmp.sh'))
+        run ('chmod +x '+os.path.join('/home',env.user,'fabric-tmp.sh'))
+        run(os.path.join('/home',env.user,'fabric-tmp.sh'))
+        run('rm '+os.path.join('/home',env.user,'fabric-tmp.sh'))
 
 #only one server need to install npt server, so remeber change your hosts before run this command
 #给机器安装ntp服务端
 @roles('server')
-def installNTPserver():
+def installNTPserver(multi='n'):
     with settings(prompts={
         'Do you want to continue? [Y/n] ':'Y'
     }):
-        __rootUser()
-        sudo('apt-get install ntp')
-        sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
-        sudo('/etc/init.d/ntp restart')
+        if(len(env.hsots)>1 and multi!='y'):
+            print "if you are sure that you want to install NTP server on multi servers, please use `fab installNTPserver:y`"
+            return
+        else:
+            __rootUser()
+            if ((not myenv.append) or env.host in myenv.new_hosts):
+                sudo('apt-get install ntp')
+                sudo('echo "restrict '+cf.get(activeSession,'ntp_net')+' mask ' +cf.get(activeSession,'ntp_net_mask')+' nomodify " >> /etc/ntp.conf')
+                sudo('/etc/init.d/ntp restart')
 
 #设置npt客户端定期任务
 @roles('server')
 def setNTPtasks():
     __rootUser()
-    sudo('echo "#!/bin/bash" >> /etc/cron.daily/myntp')
-    sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
-    sudo('chmod 755 /etc/cron.daily/myntp')
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('echo "#!/bin/bash" >> /etc/cron.daily/myntp')
+        sudo('echo "ntpdate '+cf.get(activeSession,'ntp_server')+'" >> /etc/cron.daily/myntp')
+        sudo('chmod 755 /etc/cron.daily/myntp')
 
 #重启机器
 @roles('server')
 def restart():
     __rootUser()
-    reboot()
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        reboot()
 
 #修改apt-source, will update automatically
 @roles('server')
 def modifyAptSource():
     __rootUser()
-    sudo('mv /etc/apt/sources.list /etc/apt/sources.list_bk')
-    for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
-        sudo('echo "'+line+'" >> /etc/apt/sources.list')
-    sudo('apt-get update')
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('mv /etc/apt/sources.list /etc/apt/sources.list_bk')
+        for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/sources.list')):
+            sudo('echo "'+line+'" >> /etc/apt/sources.list')
+        sudo('apt-get update')
 
 #only update apt , do not modify sources.list
 @roles('server')
 def updateApt():
     __rootUser()
-    sudo('apt-get update')
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('apt-get update')
 
 #will modify dns address in /etc/resolvconf/resolv.conf.d/base
 @roles('server')
 def settingDNS():
     __rootUser()
-    for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/dns_address')):
-        sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
-    sudo('resolvconf -u')
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        for line in open(os.path.join(os.path.split(env.real_fabfile)[0], 'files/dns_address')):
+            sudo('echo "' + line + '" >> /etc/resolvconf/resolv.conf.d/base')
+        sudo('resolvconf -u')
 
+#挂载磁盘
 @roles('server')
 def addDisk(device,location):
     __rootUser()
-    sudo('mkdir ' + location)
-    with settings(prompts={
-        'Proceed anyway? (y,n) ': 'y'
-    }):
-        #print device
-        #print location
-        sudo('mkfs -t ext4 ' + device)
-        sudo('mount -t ext4 ' + device +  ' ' + location)
-        sudo('chmod -R 777 ' + location)
-        sudo('echo "'+"#"+device+'">>/etc/fstab')
-        sudo("echo " +"'UUID='`blkid|grep sdb|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('mkdir ' + location)
+        with settings(prompts={
+            'Proceed anyway? (y,n) ': 'y'
+        }):
+            #print device
+            #print location
+            sudo('mkfs -t ext4 ' + device)
+            sudo('mount -t ext4 ' + device +  ' ' + location)
+            sudo('chmod -R 777 ' + location)
+            sudo('echo "'+"#"+device+'">>/etc/fstab')
+            sudo("echo " +"'UUID='`blkid|grep sdb|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")

@@ -6,6 +6,7 @@ root =
 #passwd of sudoer
 passwd =
 
+
 #example of section
 [server]
 #uesr name, if use createUser task, this user name will be the new user
@@ -16,6 +17,10 @@ passwd =
 hosts=
 #hostnames of cluster , the number of hostnames must equal with hosts. the hostnames is used for changeHostname tass
 hostnames=
+#only useful for appendHosts, and ssh task when you add new nods into an existed and initialized cluster
+existed_hosts=
+#only useful for appendHosts, and ssh task when you add new nods into an existed and initialized cluster
+existed_hostnames=
 #locally jdk file. the related path is ./
 jdk_source_file=
 # when the jdk.tar.gz is unziped, the folder in the tar file.
@@ -40,6 +45,7 @@ jdk_source_file=
 jdk_folder=
 #bind which ip address for the couchdb #if not 0.0.0.0, only one server is successful installed
 bind_address=
+
 
 [collectd]
 inflexdb_ip=
