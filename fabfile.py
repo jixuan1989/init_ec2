@@ -256,12 +256,12 @@ def ssh2():
 def ssh2_OneToAll():
     __normalUser()
     special=cf.get(activeSession,'admin_ip')
-    for node in myenv.hosts:
-        f = fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + node))
-        pem = f.readline()
-        f.close()
-        if ((not myenv.append) or env.host==special):
-            run('echo "' + pem + '" >> ~/.ssh/authorized_keys')
+    #for node in myenv.hosts:
+    f = fileinput.input(os.path.join(os.path.split(env.real_fabfile)[0], 'files/' + special))
+    pem = f.readline()
+    f.close()
+    if ((not myenv.append) or env.host!=special):
+        run('echo "' + pem + '" >> ~/.ssh/authorized_keys')
 
 
 #清理程序
