@@ -33,11 +33,18 @@ def installCollectd():
         fabfile.__rootUser()
         sudo('apt-get install collectd -y')
         sudo("sed -i 's/#LoadPlugin network/LoadPlugin network/g' /etc/collectd/collectd.conf")
-        configuration='<Plugin "network">\n\tServer "'+fabfile.cf.get('collectd','inflexdb_ip')+'" "'+fabfile.cf.get('collectd','inflexdb_port')+'"'+'\n</ Plugin >'
+        configuration='<Plugin "network">\n\tServer "'+fabfile.cf.get('collectd','server_ip')+'" "'+fabfile.cf.get('collectd','server_port')+'"'+'\n</ Plugin >'
         sudo("echo '"+configuration+"' >>/etc/collectd/collectd.conf ")
-        sudo("sed -i 's/#Interval 10/Interval 2/g' /etc/collectd/collectd.conf")
+        configuration=fabfile.cf.get('collectd','interval')
+        sudo("sed -i 's/#Interval 10/Interval "+configuration+"/g' /etc/collectd/collectd.conf")
         sudo("/etc/init.d/collectd stop")
         sudo("/etc/init.d/collectd start")
+
+@roles('server')
+def runCollectd(status='start'):
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__rootUser()
+        sudo("/etc/init.d/collectd "+status)
 
 
 @roles('server')

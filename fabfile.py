@@ -41,14 +41,17 @@ class __MyEnv:
 
 
 myenv=__MyEnv()
-myenv.hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
-myenv.hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
+myenv.new_hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
+myenv.new_hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
 
 i=0
 while i<len(myenv.hosts):
-    myenv.hostmap[myenv.hosts[i]]=myenv.hostnames[i]
+    myenv.new_hostmap[myenv.new_hosts[i]]=myenv.new_hostnames[i]
     i=i+1
 
+myenv.hosts = myenv.new_hosts[:]
+myenv.hostnames = myenv.new_hostnames[:]
+myenv.hostmap = myenv.new_hostmap.copy()
 
 if(len(cf.get(activeSession,'existed_hosts'))!=0):
     myenv.append=True
@@ -57,17 +60,11 @@ if(len(cf.get(activeSession,'existed_hosts'))!=0):
     i = 0
     while i < len(myenv.existed_hosts):
         myenv.existed_hostmap[myenv.existed_hosts[i]] = myenv.existed_hostnames[i]
+        if(not myenv.existed_hosts[i] in myenv.hosts):
+            myenv.hosts.append(myenv.existed_hosts[i])
+            myenv.hostnames.append(myenv.existed_hostnames[i])
+            myenv.hostmap[myenv.existed_hosts[i]]=myenv.existed_hostnames[i]
         i = i + 1
-
-    myenv.new_hosts=myenv.hosts[:]
-    myenv.new_hostnames=myenv.hostnames[:]
-    myenv.new_hostmap=myenv.hostmap.copy()
-
-    for a in myenv.existed_hosts:
-        myenv.new_hosts.remove(a)
-        myenv.new_hostmap.pop(a)
-    for a in myenv.existed_hostnames:
-        myenv.new_hostnames.remove(a)
 
 env.roledefs={
     'server':{
@@ -380,6 +377,6 @@ def addDisk(device,location):
             sudo('mount -t ext4 ' + device +  ' ' + location)
             sudo('chmod -R 777 ' + location)
             sudo('echo "'+"#"+device+'">>/etc/fstab')
-            sudo("echo " +"'UUID='`blkid|grep "+device+"|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t3 >>/etc/fstab")
+            sudo("echo " +"'UUID='`blkid|grep "+device+"|awk '{print $2}'|awk -F '\"' '{print $2}'`"+"\t"+location+"\t ext4"+"\tdefaults\t0\t0 >>/etc/fstab")
     else:
         print "skip existed node:" +env.host
