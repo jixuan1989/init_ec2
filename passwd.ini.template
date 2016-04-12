@@ -31,7 +31,8 @@ ntp_server=
 ntp_net=
 # the allowed net mask that can sync with your ntp server
 ntp_net_mask=
-
+#admin ip. first ly, admin ip should be in hosts. secondly, we will set admin ip can free-password ssh other nodes (if you use ssh2_OneToAll instead of ssh2)
+admin_ip=
 
 
 
