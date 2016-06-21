@@ -133,13 +133,13 @@ init EC2 cluster, for free-password-login(ubuntu and root). for hostname, for ho
         - you need add a section in passwd.ini
 
             [collectd]
-            #server ip tell the node that where to send the collected data
-            #the receiver should have a receive process. e.g. influxdb and others
-            #the most easy receiver is collected itself. In this way, you should modify the receiver's collectd configuration file yourself: /etc/collectd/collectd.conf
-            #in network plugin: replace "Server" by "Listen"
+            \#server ip tell the node that where to send the collected data
+            \#the receiver should have a receive process. e.g. influxdb and others
+            \#the most easy receiver is collected itself. In this way, you should modify the receiver's collectd configuration file yourself: /etc/collectd/collectd.conf
+            \#in network plugin: replace "Server" by "Listen"
             server_ip=
             server_port=
-            #collect interval unit: second
+            \#collect interval unit: second
             interval=5
     * runCollectd
         - `fab -f fab_bigdata runCollectd:stop` or `fab -f fab_bigdata runCollectd:start`
