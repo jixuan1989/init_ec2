@@ -18,10 +18,16 @@ env.disable_known_hosts=True
 
 def __rootUser():
     env.user=cf.get('default','root')
-    env.password=cf.get('default','passwd')
+    if (len(cf.get('default', 'pem_key')) != 0):
+        env.key_filename = [cf.get('default', 'pem_key')]
+    else:
+        env.password = cf.get('default', 'passwd')
 def __normalUser():
     env.user=cf.get(activeSession,'newuser')
-    env.password = cf.get(activeSession,'passwd')
+    if (len(cf.get(activeSession, 'pem_key')) != 0):
+        env.key_filename = [cf.get(activeSession, 'pem_key')]
+    else:
+        env.password = cf.get(activeSession, 'passwd')
 __normalUser()
 
 def __lambdastrp(x):
@@ -92,7 +98,12 @@ env.roledefs={
 #    }
 #}
 
-
+#允许密码登录(amazon默认不允许密码登录)
+@roles('server')
+def enablePassword():
+    __rootUser()
+    sudo("sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config")
+    sudo('service ssh restart')
 #批量创建用户
 @roles('server')
 def createUser():
