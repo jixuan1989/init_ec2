@@ -77,6 +77,9 @@ if(len(cf.get(activeSession,'existed_hosts'))!=0):
 env.roledefs={
     'server':{
         'hosts':myenv.hosts
+    },
+    'singleserver':{
+        'hosts':[myenv.hosts[0]]
     }
 
 }

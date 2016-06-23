@@ -15,7 +15,7 @@ newuser =
 #password of newuser
 passwd =
 #pem file path, if it is not empty, we will ignore passwd
-pem_key = 
+pem_key =
 #cluster ips, use comma to split
 hosts=
 #hostnames of cluster , the number of hostnames must equal with hosts. the hostnames is used for changeHostname tass
@@ -54,3 +54,8 @@ bind_address=
 [collectd]
 inflexdb_ip=
 inflexdb_port=
+
+[cassandra]
+cassandra_file=
+cassandra_folder=
+data_folder=
