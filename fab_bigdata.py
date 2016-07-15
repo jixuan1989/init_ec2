@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import fabfile
 from fabric.api import *
+from fabric.contrib.files import exists
 import os
 
 env=fabfile.env
@@ -87,34 +88,52 @@ def distributeCassandra():
 
 @roles('server')
 def modifyCassandra():
-    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+    if (not (env.host in fabfile.cf.get(fabfile.activeSession,'admin_ip'))):
         fabfile.__normalUser()
         cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
         yaml = os.path.join(os.path.split(env.real_fabfile)[0], 'files/cassandra.yaml')
         put(yaml, os.path.join(cassandra_path, 'conf/cassandra.yaml'))
 
 @roles('server')
-def runCassandra(status='stop'):
-    if (not (env.host in fabfile.cf.get(fabfile.activeSession,'admin_ip'))):
+def runOneCassandraSeed():
+    if (env.host in fabfile.cf.get('cassandra','one_seed_ip')):
         fabfile.__normalUser()
         cassandra_path=os.path.join('/home',env.user,fabfile.cf.get('cassandra','cassandra_folder'))
         print cassandra_path
-        if(status=='start'):
-            out=run('nohup ' + os.path.join(cassandra_path,'bin/cassandra')+' ',pty=True, combine_stderr=True)
-            print out
+        out=run('nohup ' + os.path.join(cassandra_path,'bin/cassandra -p cassandraPID')+' ',pty=True, combine_stderr=True)
+        print out
+
+@roles('server')
+def runCassandra(status='stop'):
+    with settings(warn_only=True):
+        fabfile.__normalUser()
+        cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
+        print cassandra_path
+        if (status == 'start'):
+            if (not (env.host in fabfile.cf.get(fabfile.activeSession,'admin_ip')) and not (env.host in fabfile.cf.get('cassandra','one_seed_ip'))):
+                out=run('nohup ' + os.path.join(cassandra_path,'bin/cassandra -p cassandraPID && sleep 5')+' ',pty=True, combine_stderr=True)
+                print out
         elif(status=='stop'):
-            pid=run('cat '+os.path.join('/home',env.user,'cassandraPID'))
-            run("kill -9 "+pid)
+            if (not (env.host in fabfile.cf.get(fabfile.activeSession, 'admin_ip'))):
+                pid=run('cat '+os.path.join('/home',env.user,'cassandraPID'))
+                run("kill -9 "+pid)
+                run('rm '+os.path.join('/home',env.user,'cassandraPID'))
         else:
             print 'unknow command '+ status+", only support start or stop"
 
-@roles('singleserver')
+
+
+@roles('server')
 def showCassandra():
-    out = run(os.path.join(cassandra_path, 'bin/nodetool  status'), pty=True, combine_stderr=True)
-    print out
+    if (env.host in fabfile.cf.get('cassandra', 'one_seed_ip')):
+        fabfile.__normalUser()
+        cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
+        out = run(os.path.join(cassandra_path, 'bin/nodetool  status'), pty=True, combine_stderr=True)
+        print out
 
 @roles('server')
 def rmCassandraData(status='stop'):
-    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+    if (not (env.host in fabfile.cf.get(fabfile.activeSession,'admin_ip'))):
         fabfile.__normalUser()
         run('rm -rf '+fabfile.cf.get('cassandra','data_folder'))
+        run('mkdir ' + fabfile.cf.get('cassandra', 'data_folder'))

@@ -59,3 +59,4 @@ inflexdb_port=
 cassandra_file=
 cassandra_folder=
 data_folder=
+one_seed_ip=
