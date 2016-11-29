@@ -1,6 +1,8 @@
 # init_ec2
 This project helps users to initialize a new cluster.
 
+For example, you can watch a use case vedio on Youtube: https://youtu.be/OvVaib5xllo
+
 It is suitable for:
  
  * a real cluster, which consists of PCs, small servers or other  physical machines you own.
