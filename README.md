@@ -21,7 +21,9 @@ The only conditions you should have are:
 		- sudo easy_install fabric
 	- on Linux (Ubuntu), the same way (notice, do not use pip to install fabric, you will be disappointed; besides, apt-get install fabric is ok, but the version is 1.8 now (2016.4))
 		- sudo apt-get install python-setuptools python-dev build-essential
+		- sudo easy_install "six==1.6.0" # I am not sure that whether it is necessary,
 		- sudo easy_install fabric
+		- notice that, if there is something wrong, google it: e.g., lack of some .h file, just use apt-get install
 	- on Windows,... Good luck, guy. I have not tried how to install fabric on Windows. But it should not be a probelm.  
 init EC2 cluster, for free-password-login(ubuntu and root). for hostname, for hosts file.  
 
