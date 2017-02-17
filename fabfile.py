@@ -211,6 +211,22 @@ def distributeJDK():
         run('rm '+os.path.join('/home',env.user,'fabric-jdk.tar.gz'))
     else:
         print "skip existed node:" + env.host
+# install scala
+@roles('server')
+def distributeScala():
+    __normalUser()
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        print 'will create a temp file /home/username/fabric-scala.tar.gz'
+        env.user=cf.get(activeSession,'newuser')
+        env.password=cf.get(activeSession,'passwd')
+        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get(activeSession,'scala_source_file')), os.path.join('/home',env.user,'fabric-scala.tar.gz'))
+        run('tar -xzf '+ os.path.join('/home',env.user,'fabric-scala.tar.gz'))
+        run('echo "export SCALA_HOME='+os.path.join('/home/',env.user, cf.get(activeSession,'scala_folder'))+'">>~/.bashrc')
+        run("echo 'export PATH=$SCALA_HOME/bin:$PATH' >>~/.bashrc")
+        run('rm '+os.path.join('/home',env.user,'fabric-scala.tar.gz'))
+    else:
+        print "skip existed node:" + env.host
+
 
 @roles('server')
 def __test3():

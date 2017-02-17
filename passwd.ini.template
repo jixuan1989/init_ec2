@@ -28,6 +28,10 @@ existed_hostnames=
 jdk_source_file=
 # when the jdk.tar.gz is unziped, the folder in the tar file.
 jdk_folder=
+#locally scala file. the related path is ./
+scala_source_file=
+# when the scala.tar.gz is unziped, the folder in the tar file.
+scala_folder=
 # the ntp server address you  want to sync
 ntp_server=
 # the allowed net that can sync with your ntp server
