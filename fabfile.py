@@ -6,6 +6,9 @@ import ConfigParser
 import os
 import fileinput
 
+from fabric.network import ssh
+
+ssh.util.log_to_file("paramiko.log", 10)
 
 cf=ConfigParser.ConfigParser()
 cf.read('passwd.ini')
@@ -348,6 +351,19 @@ def installNTPserver(multi='n'):
                 sudo('/etc/init.d/ntp restart')
             else:
                 print "skip existed node:" + env.host
+
+  #给机器安装ntpdate
+@roles('server')
+def installNTPdate():
+    with settings(prompts={
+        'Do you want to continue? [Y/n] ':'Y'
+    }):
+        __rootUser()
+        if ((not myenv.append) or env.host in myenv.new_hosts):
+           sudo('apt-get install ntpdate')
+        else:
+           print "skip existed node:" + env.host
+
 #设置npt客户端定期任务
 @roles('server')
 def setNTPtasks():
