@@ -13,12 +13,13 @@ The only conditions you should have are:
 - you have installed ubuntu (tested on 14.04) OS on all the nodes. (it is always eligibly in cloud environments, e.g., EC2, aliyun)
 - you  know or have set the ip address on each node. 
 - **python 2.7** has been installed on your laptop/PC. (unless you use a Windows OS, otherwise you are eligibly. on Windows, you need to install Python yourself)
-- **fabric** (version >=1.10) has been installed on your laptop/PC
+- **fabric** (version >=1.10, but not compatible with 2.0 version) has been installed on your laptop/PC
 	- it seems a little harder than above steps. But believe me, you deserve it! 
 	- on Mac, install easy_install and then fabric:
 		- download file https://pypi.python.org/pypi/ez_setup 
 		- sudo python ez_setup.py
-		- sudo easy_install fabric
+		- sudo easy_install fabric = 1.10.5
+		
 	- on Linux (Ubuntu), the same way (notice, do not use pip to install fabric, you will be disappointed; besides, apt-get install fabric is ok, but the version is 1.8 now (2016.4))
 		- sudo apt-get install python-setuptools python-dev build-essential
 		- sudo easy_install "six==1.6.0" # I am not sure that whether it is necessary,
