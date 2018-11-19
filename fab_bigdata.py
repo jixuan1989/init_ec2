@@ -4,13 +4,15 @@ from fabric.api import *
 from fabric.contrib.files import exists
 import os
 
-env=fabfile.env
+env = fabfile.env
+
 
 def __test():
-    print fabfile.cf.get('server','hosts')
+    print fabfile.cf.get('server', 'hosts')
 
 # currently, couchdb is not a cluster. instead, each node is a single instance. so you'd better to just use one node.
-#just for ubuntu 14.04, see https://launchpad.net/~couchdb/+archive/ubuntu/stable
+# just for ubuntu 14.04, see https://launchpad.net/~couchdb/+archive/ubuntu/stable
+
 
 @roles('server')
 def installCouch(multi='n'):
@@ -30,6 +32,7 @@ def installCouch(multi='n'):
             #sudo('')
             sudo('couchdb start')
 
+
 @roles('server')
 def runCouch(status='start',multi='n'):
     if (len(env.hsots) > 1 and multi != 'y'):
@@ -39,6 +42,7 @@ def runCouch(status='start',multi='n'):
         if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
             fabfile.__rootUser()
             sudo('couchdb '+status)
+
 
 @roles('server')
 def installCollectd():
@@ -53,13 +57,16 @@ def installCollectd():
         sudo("/etc/init.d/collectd stop")
         sudo("/etc/init.d/collectd start")
 
+
 @roles('server')
 def runCollectd(status='start'):
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         fabfile.__rootUser()
         sudo("/etc/init.d/collectd "+status)
 
-#only client. you need to install server yourself now. (server has too many configurations that need to set. e.g., apache2 or nginx)
+
+# only client. you need to install server yourself now.
+# (server has too many configurations that need to set. e.g., apache2 or nginx)
 @roles('server')
 def installGangliaClient():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
@@ -69,6 +76,7 @@ def installGangliaClient():
             os.path.join('/home', env.user, 'fabric-gmond.conf'))
         sudo('cat '+os.path.join('/home', env.user, 'fabric-gmond.conf') +' > /etc/ganglia/gmond.conf')
         sudo('service ganglia-monitor restart')
+
 
 @roles('server')
 def distributeCassandra():
@@ -86,6 +94,7 @@ def distributeCassandra():
         put(logback, os.path.join(cassandra_path, 'conf/logback.yaml'))
         run('mkdir '+ cf.get('cassandra','data_folder'))
 
+
 @roles('server')
 def modifyCassandra():
     if (not (env.host in fabfile.cf.get(fabfile.activeSession,'admin_ip'))):
@@ -93,6 +102,7 @@ def modifyCassandra():
         cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
         yaml = os.path.join(os.path.split(env.real_fabfile)[0], 'files/cassandra.yaml')
         put(yaml, os.path.join(cassandra_path, 'conf/cassandra.yaml'))
+
 
 @roles('server')
 def runOneCassandraSeed():
@@ -102,6 +112,7 @@ def runOneCassandraSeed():
         print cassandra_path
         out=run('nohup ' + os.path.join(cassandra_path,'bin/cassandra -p cassandraPID')+' ',pty=True, combine_stderr=True)
         print out
+
 
 @roles('server')
 def runCassandra(status='stop'):
@@ -122,7 +133,6 @@ def runCassandra(status='stop'):
             print 'unknow command '+ status+", only support start or stop"
 
 
-
 @roles('server')
 def showCassandra():
     if (env.host in fabfile.cf.get('cassandra', 'one_seed_ip')):
@@ -130,6 +140,7 @@ def showCassandra():
         cassandra_path = os.path.join('/home', env.user, fabfile.cf.get('cassandra', 'cassandra_folder'))
         out = run(os.path.join(cassandra_path, 'bin/nodetool  status'), pty=True, combine_stderr=True)
         print out
+
 
 @roles('server')
 def rmCassandraData(status='stop'):
@@ -190,6 +201,7 @@ def distributeHadoop2_8_5():
            # modify = "sed -i 's/<value>MASTERIP.*/<value>" + special + ":50090<\\/value>/g' hdfs-site.xml"
             #run(modify)
 
+
 @roles('server')
 def formatHadoop():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
@@ -200,6 +212,7 @@ def formatHadoop():
         with cd(hadoop_folder):
             if(env.host==special):
                 run('bin/hdfs namenode -format '+ cf.get("hadoop",'format_cluster_name'))
+
 
 @roles('server')
 def startHadoop():
@@ -216,6 +229,7 @@ def startHadoop():
                     run('sbin/start-all.sh')
                     run('sbin/mr-jobhistory-daemon.sh start historyserver')
 
+
 @roles('server')
 def stopHadoop():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
@@ -229,9 +243,89 @@ def stopHadoop():
                 run('sbin/mr-jobhistory-daemon.sh stop historyserver')
 
 
-
 def remoteFileExist(file):
     if int(run(" [ -e '"+ file +"' ] && echo 11 || echo 10")) == 11:
         return 1
     else:
         return 0
+
+
+@roles('server')
+def distributeSpark2_4_0():
+    if (not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts:
+        fabfile.__normalUser()
+        print 'will create a temp file /home/username/fabric-spark.tar'
+        cf = fabfile.cf
+        spark_path = os.path.join('/home', env.user, cf.get('spark', 'spark_folder'))
+        spark_config_folder = os.path.join('/home', env.user, cf.get('spark', 'spark_folder'), 'conf')
+
+        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get('spark', 'spark_file')), os.path.join('/home', env.user, 'fabric-spark.tar'))
+        run('tar -xf ' + os.path.join('/home', env.user, 'fabric-spark.tar'))
+
+        if not remoteFileExist(cf.get('spark', 'spark_work')):
+            run('mkdir -p ' + cf.get('spark', 'spark_work'))
+        with cd(spark_config_folder):
+            print '清空slaves...'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/spark/slaves'), spark_config_folder)
+            # run("cp slaves.template > slaves")
+            run("cat /dev/null > slaves")
+
+            print '填写slaves...'
+            # special = cf.get('spark', 'master_ip')
+            for node in cf.get('spark', 'slaves').split(","):
+                    run("echo " + node + ">> slaves")
+
+            print '填写spark-env.sh'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/spark/spark-env.sh'), spark_config_folder)
+            # SPARK_MASTER_PORT
+            run("echo 'SPARK_MASTER_PORT=7077' >> spark-env.sh")
+            # SPARK_MASTER_HOST
+            run("echo 'SPARK_MASTER_HOST=" + cf.get('spark', 'master_ip') + "' >> spark-env.sh")
+            # SPARK_LOCAL_IP
+            localippara1 = 'ifconfig -a|grep inet|grep -v inet6|grep -v 127|awk '
+            localippara2 = '\'{print $2}\''
+            localippara3 = '|tr -d '
+            localippara4 = '\"addr:\"'
+            localippara5 = '|sed -n '
+            localippara6 = '\'1p\''
+                # SparkLocalIp = run('ifconfig -a|grep inet|grep -v inet6|grep -v 127|awk '{print $2}'|tr -d "addr:"|sed -n '1p'')
+            SparkLocalIp = localippara1 + localippara2 + localippara3 + localippara4 + localippara5 + localippara6
+            out = run(SparkLocalIp)
+            run("echo 'SPARK_LOCAL_IP=" + out + "' >> spark-env.sh")
+            # SPARK_HOME
+            run("echo 'SPARK_HOME=" + spark_path + "' >> spark-env.sh")
+            # JAVA_HOME
+            jdk_path=os.path.join('/home/', env.user, cf.get(fabfile.activeSession, 'jdk_folder'))
+            run("echo 'JAVA_HOME=" + jdk_path + "' >> spark-env.sh")
+            # SPARK_WORK_DIR
+            run("echo 'SPARK_WORK_DIR=" + cf.get('spark', 'spark_work') +"' >> spark-env.sh")
+            # SPARK_WORKER_OPTS
+            spark_work_opts='"-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=1800 -Dspark.worker.cleanup.appDataTtl=3600"'
+            run("echo 'SPARK_WORKER_OPTS=" + spark_work_opts + "' >> spark-env.sh")
+
+
+@roles('server')
+def startSpark2_4_0():
+    with settings(prompts={
+        'Are you sure you want to continue connecting (yes/no)?':'yes'
+    }):
+        if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+            fabfile.__normalUser()
+            cf=fabfile.cf
+            special = cf.get('spark', 'master_public_ip')
+            spark_path = os.path.join('/home', env.user, cf.get('spark', 'spark_folder'))
+            with cd(spark_path):
+                if(env.host==special):
+                    run('sbin/start-all.sh')
+
+
+@roles('server')
+def stopSpark2_4_0():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        cf=fabfile.cf
+        special = cf.get('spark', 'master_public_ip')
+        spark_path = os.path.join('/home', env.user, cf.get('spark', 'spark_folder'))
+        with cd(spark_path):
+            if(env.host==special):
+                run('sbin/stop-all.sh')
