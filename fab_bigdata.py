@@ -137,3 +137,101 @@ def rmCassandraData(status='stop'):
         fabfile.__normalUser()
         run('rm -rf '+fabfile.cf.get('cassandra','data_folder'))
         run('mkdir ' + fabfile.cf.get('cassandra', 'data_folder'))
+
+
+@roles('server')
+def distributeHadoop2_8_5():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        print 'will create a temp file /home/username/fabric-hadoop.tar.gz'
+        cf=fabfile.cf
+        put(os.path.join(os.path.split(env.real_fabfile)[0], cf.get('hadoop','hadoop_file')), os.path.join('/home',env.user,'fabric-hadoop.tar.gz'))
+        run('tar -xzf '+ os.path.join('/home',env.user,'fabric-hadoop.tar.gz'))
+        if not remoteFileExist(cf.get('hadoop','data_folder')):
+            run('mkdir -p ' + cf.get('hadoop','data_folder'))
+        hadoop_config_folder=os.path.join('/home',env.user,cf.get('hadoop','hadoop_folder'),'etc/hadoop')
+        with cd(hadoop_config_folder):
+            modifyJDK="sed -i 's/export JAVA_HOME=.*/export JAVA_HOME=" + os.path.join('/home/',env.user, cf.get(fabfile.activeSession,'jdk_folder')).replace("/","\\/")  + "/g' hadoop-env.sh"
+            run(modifyJDK)
+            print '清空slaves...'
+            run("cat /dev/null > slaves")
+
+            print '填写slaves...'
+            special = cf.get('hadoop','master_ip')
+            for node in cf.get('hadoop','slaves').split(","):
+                #if(not (node == special and cf.get('hadoop','master_as_a_slave')=="0")):
+                    run("echo "+ node + ">> slaves")
+
+            print '填写mapred-site.xml'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/hadoop/mapred-site.xml'),hadoop_config_folder)
+            modify="sed -i 's/<value>MASTERIP:10020.*/"+"<value>"+special+":10020<\\/value>"+"/g' mapred-site.xml"
+            run(modify)
+            modify = "sed -i 's/<value>MASTERIP:19888.*/" + "<value>" + special + ":19888<\\/value>" + "/g' mapred-site.xml"
+            run(modify)
+
+            print '填写core-site.xml'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/hadoop/core-site.xml'), hadoop_config_folder)
+            modifyFSURL="sed -i 's/<value>.*/"+"<value>hdfs:\\/\\/"+special+":9000<\\/value>"+"/g' core-site.xml"
+            run(modifyFSURL)
+
+            print '填写yarn-site.xml'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/hadoop/yarn-site.xml'), hadoop_config_folder)
+            modify = "sed -i 's/<value>MASTERIP:8031.*/" + "<value>" + special + ":8031<\\/value>" + "/g' yarn-site.xml"
+            run(modify)
+            modify = "sed -i 's/<value>MASTERIP:8032.*/" + "<value>" + special + ":8032<\\/value>" + "/g' yarn-site.xml"
+            run(modify)
+            modify = "sed -i 's/<value>MASTERIP:8030.*/" + "<value>" + special + ":8030<\\/value>" + "/g' yarn-site.xml"
+            run(modify)
+
+            print '填写hdfs-site.xml'
+            put(os.path.join(os.path.split(env.real_fabfile)[0], 'files/hadoop/hdfs-site.xml'), hadoop_config_folder)
+            modify="sed -i 's/<value>DATADIR.*/<value>" + cf.get('hadoop','data_folder').replace("/", "\\/") +"<\\/value>/g' hdfs-site.xml"
+            run(modify)
+           # modify = "sed -i 's/<value>MASTERIP.*/<value>" + special + ":50090<\\/value>/g' hdfs-site.xml"
+            #run(modify)
+
+@roles('server')
+def formatHadoop():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        cf=fabfile.cf
+        special = cf.get('hadoop', 'master_public_ip')
+        hadoop_folder=os.path.join('/home',env.user,cf.get('hadoop','hadoop_folder'))
+        with cd(hadoop_folder):
+            if(env.host==special):
+                run('bin/hdfs namenode -format '+ cf.get("hadoop",'format_cluster_name'))
+
+@roles('server')
+def startHadoop():
+    with settings(prompts={
+        'Are you sure you want to continue connecting (yes/no)?':'yes'
+    }):
+        if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+            fabfile.__normalUser()
+            cf=fabfile.cf
+            special = cf.get('hadoop', 'master_public_ip')
+            hadoop_folder=os.path.join('/home',env.user,cf.get('hadoop','hadoop_folder'))
+            with cd(hadoop_folder):
+                if(env.host==special):
+                    run('sbin/start-all.sh')
+                    run('sbin/mr-jobhistory-daemon.sh start historyserver')
+
+@roles('server')
+def stopHadoop():
+    if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
+        fabfile.__normalUser()
+        cf=fabfile.cf
+        special = cf.get('hadoop', 'master_public_ip')
+        hadoop_folder=os.path.join('/home',env.user,cf.get('hadoop','hadoop_folder'))
+        with cd(hadoop_folder):
+            if(env.host==special):
+                run('sbin/stop-all.sh')
+                run('sbin/mr-jobhistory-daemon.sh stop historyserver')
+
+
+
+def remoteFileExist(file):
+    if int(run(" [ -e '"+ file +"' ] && echo 11 || echo 10")) == 11:
+        return 1
+    else:
+        return 0

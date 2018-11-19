@@ -47,11 +47,15 @@ class __MyEnv:
     existed_hostnames=[]
     existed_hostmap={}
     append=False
+    private_hosts=[]
+    new_private_hosts=[]
+    existed_private_hosts=[]
 
 
 myenv=__MyEnv()
 myenv.new_hosts=map(__lambdastrp, cf.get(activeSession,'hosts').split(','))
 myenv.new_hostnames=map(__lambdastrp,cf.get(activeSession,'hostnames').split(','))
+myenv.new_private_hosts=map(__lambdastrp, cf.get(activeSession,'private_hosts').split(','))
 
 i=0
 while i<len(myenv.new_hosts):
@@ -61,18 +65,21 @@ while i<len(myenv.new_hosts):
 myenv.hosts = myenv.new_hosts[:]
 myenv.hostnames = myenv.new_hostnames[:]
 myenv.hostmap = myenv.new_hostmap.copy()
-
+myenv.private_hosts=myenv.new_private_hosts[:]
 
 
 if(len(cf.get(activeSession,'existed_hosts'))!=0):
     myenv.append=True
     myenv.existed_hosts=map(__lambdastrp, cf.get(activeSession,'existed_hosts').split(','))
     myenv.existed_hostnames = map(__lambdastrp, cf.get(activeSession, 'existed_hostnames').split(','))
+    myenv.existed_private_hosts=map(__lambdastrp, cf.get(activeSession,'existed_private_hosts').split(','))
+
     i = 0
     while i < len(myenv.existed_hosts):
         myenv.existed_hostmap[myenv.existed_hosts[i]] = myenv.existed_hostnames[i]
         if(not myenv.existed_hosts[i] in myenv.hosts):
             myenv.hosts.append(myenv.existed_hosts[i])
+            myenv.private_hosts.append(myenv.existed_private_hosts[i])
             myenv.hostnames.append(myenv.existed_hostnames[i])
             myenv.hostmap[myenv.existed_hosts[i]]=myenv.existed_hostnames[i]
         i = i + 1
@@ -151,27 +158,50 @@ def removeUser():
 def addIntoHostFile():
     __rootUser()
     if ((not myenv.append) or env.host in myenv.new_hosts):
-        sudo('echo "' + __generateHosts() + '" >> /etc/hosts')
+        sudo('echo "' + __generateHosts(myenv.hosts, myenv.hostnames) + '" >> /etc/hosts')
     else:
-        sudo('echo "' + __generateNewHosts() + '" >> /etc/hosts')
+        sudo('echo "' + __generateHosts(myenv.new_hosts,myenv.new_hostnames) + '" >> /etc/hosts')
 
+#修改hosts
+@roles('server')
+def cleanHostFile():
+    __rootUser()
 
-def __generateHosts():
     hosts = ''
     i = 0
     size = len(myenv.hosts)
     while i < size:
-        hosts = hosts + '\n' + myenv.hosts[i] + '\t' + myenv.hostnames[i]
+        sudo("sed -i 's/"+ myenv.hosts[i] + '\t' + myenv.hostnames[i] +"/ /g' /etc/hosts")
         i = i + 1
-    return hosts
 
-def __generateNewHosts():
-    hosts=''
-    i=0
-    size=len(myenv.new_hosts)
-    while i<size:
-        hosts = hosts + '\n' + myenv.new_hosts[i] + '\t' + myenv.new_hostnames[i]
-        i=i+1
+#修改hosts
+@roles('server')
+def addPrivateIpIntoHostFile():
+    __rootUser()
+    if ((not myenv.append) or env.host in myenv.new_hosts):
+        sudo('echo "' + __generateHosts(myenv.private_hosts,myenv.hostnames) + '" >> /etc/hosts')
+    else:
+        sudo('echo "' + __generateHosts(myenv.new_private_hosts,myenv.new_hostnames) + '" >> /etc/hosts')
+
+#修改hosts
+@roles('server')
+def cleanPrivateIpHostFile():
+    __rootUser()
+    hosts = ''
+    i = 0
+    size = len(myenv.hosts)
+    while i < size:
+        sudo("sed -i 's/"+ myenv.private_hosts[i] + '\t' + myenv.hostnames[i] +"/ /g' /etc/hosts")
+        i = i + 1
+
+
+def __generateHosts(providedHosts, providedHostnames):
+    hosts = ''
+    i = 0
+    size = len(providedHosts)
+    while i < size:
+        hosts = hosts + '\n' + providedHosts[i] + '\t' + providedHostnames[i]
+        i = i + 1
     return hosts
 
 

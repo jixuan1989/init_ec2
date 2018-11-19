@@ -1,6 +1,8 @@
 .idea
 passwd.ini
 *.pyc
-files/*
-!files/sources.list
-!files/dns_address
+#files/*
+#!files/sources.list
+#!files/dns_address
+#!files/hadoop
+files/cassandra_useful_scripts

@@ -18,6 +18,8 @@ passwd =
 pem_key =
 #cluster ips, use comma to split
 hosts=
+# private ips
+private_hosts=
 #hostnames of cluster , the number of hostnames must equal with hosts. the hostnames is used for changeHostname tass
 hostnames=
 #only useful for appendHosts, and ssh task when you add new nods into an existed and initialized cluster
@@ -64,3 +66,12 @@ cassandra_file=
 cassandra_folder=
 data_folder=
 one_seed_ip=
+
+[hadoop]
+hadoop_file=
+hadoop_folder=
+data_folder=
+master_ip=
+slaves=
+start_ip=
+format_cluster_name=
