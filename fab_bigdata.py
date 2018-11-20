@@ -302,6 +302,9 @@ def distributeSpark2_4_0():
             # SPARK_WORKER_OPTS
             spark_work_opts='"-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=1800 -Dspark.worker.cleanup.appDataTtl=3600"'
             run("echo 'SPARK_WORKER_OPTS=" + spark_work_opts + "' >> spark-env.sh")
+            # HADOOP_CONF_DIR
+            HADOOP_CONF_DIR = os.path.join(cf.get('spark', 'hadoop_dir'), 'etc/hadoop')
+            run("echo 'HADOOP_CONF_DIR=" + HADOOP_CONF_DIR + "' >> spark-env.sh")
 
 
 @roles('server')
@@ -323,7 +326,7 @@ def startSpark2_4_0():
 def stopSpark2_4_0():
     if ((not fabfile.myenv.append) or env.host in fabfile.myenv.new_hosts):
         fabfile.__normalUser()
-        cf=fabfile.cf
+        cf = fabfile.cf
         special = cf.get('spark', 'master_public_ip')
         spark_path = os.path.join('/home', env.user, cf.get('spark', 'spark_folder'))
         with cd(spark_path):
